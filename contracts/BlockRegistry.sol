@@ -9,9 +9,9 @@ contract BlockRegistry{
     address[4] public managers;  // use "coreManagers" and "managers" as in "MemberShip.sol"?
     address[16] public validators;
     uint public initHeight;
-    uint public sblockNo = 1;  // start from 1
+    uint public sblockNo;  // start from 1
     uint public prevTimeStamp;
-    uint public sblockTimeStep = 15 minutes;  // what's the balance between UX and cost-control?
+    uint public sblockTimeStep = 60 minutes;  // what's the balance between UX and cost-control?
 
     struct blockStat{
         uint blockHeight;
@@ -20,14 +20,18 @@ contract BlockRegistry{
         // save ipfsAddr in bytes32 (instead of string) to save storage; to convert ipfsAddr from
         // string to hex: 1. strip the 'Qm', 2. convert to hex
         bytes32 ipfsAddr;
-        uint timestamp;
+        // uint timestamp;  // use blockHeight to replace timestamp
     }
-
     mapping (uint => blockStat) public blockHistory;
-    // ex:
-    // function newBlock(bytes32 merkleRoot, bytes32 ipfsAddr) external validatorOnly {
-    //      blockHistory[sblockNo] = blockStat(block.number, merkleRoot, ipfsAddr)
-    // }
+
+    struct articleStatStruct{
+        address authorAddr;
+        uint since;
+        uint8 status;  // should contain: unknown / active / archived / flagged / ...
+        uint32 agree;  // uint32 ~ 4e9
+        uint32 disagree;
+    }
+    mapping (bytes32 => articleStatStruct) public articleStat
 
 
     constructor() public {
@@ -43,6 +47,8 @@ contract BlockRegistry{
             address(0), address(0), address(0), address(0), address(0),
             address(0), address(0), address(0)];
         prevTimeStamp = block.timestamp - sblockTimeStep;
+        blockHistory[0] = blockStat(block.number, '0x0', '0x0');  // or some more "meaningful" data?
+        sblockNo = 1;
     }
 
     // Modifiers
@@ -65,18 +71,22 @@ contract BlockRegistry{
 
     function submitMerkleRoot(uint _initHeight, bytes32 _merkleRoot, bytes32 _ipfsAddr) public validatorOnly returns (bool) {
         // require(block.timestamp >= prevTimeStamp + sblockTimeStep, 'too soon');
-        require(block.timestamp >= prevTimeStamp + 2 minutes);  // 2 min for test purpose
+        require(block.timestamp >= prevTimeStamp + 2 minutes);  // for test purpose, use 2 min instead of sblockTimeStep
         // comment following lines for debug purpose
-        // require(block.number >= _initHeight + period_all, "side-block too frequent");
         // require(blockHistory[_initHeight].blockHeight == 0 &&
         //         blockHistory[_initHeight].merkleRoot == 0x0 &&
         //         keccak256(abi.encodePacked(blockHistory[_initHeight].ipfsAddr)) == keccak256(abi.encodePacked('')),
         //         'side-block exists');
-        blockHistory[_initHeight] = blockStat(_initHeight, _merkleRoot, _ipfsAddr, block.timestamp);
+        // require(blockHistory[sblockNo-1].blockHeight < _initHeight);
+        blockHistory[sblockNo] = blockStat(_initHeight, _merkleRoot, _ipfsAddr);
+        // Q: or blockHistory[block.number]?
+        // Q: is it worth to add the field such as "prevInitHeight" in the struct?
         sblockNo += 1;
+        prevTimeStamp = block.timestamp;  // or, instead of prevTimeStamp, keep "prevHeight" (the corresponding block.number of previous sblock)?
         return true;
     }
 
+    // merkle tree and leaves
     function merkleTreeValidator(bytes32[] calldata proof, bool[] calldata isLeft, bytes32 targetLeaf, bytes32 _merkleRoot) external pure returns (bool) {
         require(proof.length < 32);  // 2**32 ~ 4.3e9 leaves!
         require(proof.length == isLeft.length);
@@ -93,6 +103,25 @@ contract BlockRegistry{
             }
         }
         return targetHash == _merkleRoot;
+    }
+
+    function calcLeaf(uint _nonce, bytes32 _ipfs, uint _since, uint _agree, uint _disagree, bytes32 _reply, bytes32 _comment) external view returns (bytes32) {
+        // note: the "category" field is not here yet
+        return keccak256(abi.encodePacked(_nonce, msg.sender, _ipfs, _since, _agree, _disagree, _reply, _comment));
+    }
+
+    function calcLeaf2(uint _nonce, address _sender, bytes32 _ipfs, uint _since, uint _agree, uint _disagree, bytes32 _reply, bytes32 _comment) external view managerOnly returns (bytes32) {
+        return keccak256(abi.encodePacked(_nonce, _sender, _ipfs, _since, _agree, _disagree, _reply, _comment));
+    }
+
+
+    function getActiveArticles() external view returns (bytes32[] memory) {
+        bytes32[] memory articles;
+        return articles;
+    }
+
+    function calcAccountStateSummaryLeaf(address _account, uint _start, uint _end, uint _gain, uint _apUsed, uint _accReward) external validatorOnly returns (bytes32){
+        return keccak256(abi.encodePacked(msg.sender, _account, _start, _end, _gain, _apUsed, _accReward));
     }
 
     // query

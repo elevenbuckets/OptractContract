@@ -4,6 +4,9 @@ interface BlockRegistryInterface {
 
     function submitMerkleRoot(uint _initHeight, bytes32 _merkleRoot, bytes32 _ipfsAddr) external returns (bool);
     function merkleTreeValidator(bytes32[] calldata proof, bool[] calldata isLeft, bytes32 targetLeaf, bytes32 _merkleRoot) external pure returns (bool);
+    function calcLeaf(uint _nonce, bytes32 _ipfs, uint _since, uint _agree, uint _disagree, bytes32 _reply, bytes32 _comment) external view returns (bytes32);
+    function calcLeaf2(uint _nonce, address _sender, bytes32 _ipfs, uint _since, uint _agree, uint _disagree, bytes32 _reply, bytes32 _comment) external view returns (bytes32);
+    function calcAccountStateSummaryLeaf(address _account, uint _start, uint _end, uint _gain, uint _apUsed, uint _accReward) external returns (bytes32);
     function getSblockNo() external view returns (uint);
     function getBlockInfo(uint _sblockNo) external view returns (uint, bytes32, string memory);
     function queryValidator(uint _idx) external view returns (address);
