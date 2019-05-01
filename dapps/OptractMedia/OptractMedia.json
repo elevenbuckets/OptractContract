@@ -1,0 +1,11 @@
+{
+   "appName": "OptractMedia",
+   "artifactDir": "/home/jasonlin/Proj/ETH/11BE/Release/11BE/dapps/OptractMedia",
+   "conditionDir": "/home/jasonlin/Proj/ETH/11BE/Release/11BE/dapps/OptractMedia",
+   "contracts": [],
+   "account": "0xb440ea2780614b3c6a00e512f432785e7dfafa3e",
+   "database": "/home/jasonlin/Proj/ETH/11BE/Release/11BE/dapps/OptractMedia/DB",
+   "networkID": 4,
+   "version": "1.0" 
+}
+
