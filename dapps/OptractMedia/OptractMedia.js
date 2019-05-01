@@ -90,7 +90,7 @@ class OptractMedia extends BladeIronClient {
                         const compare = (a,b) => { if (ethUtils.bufferToInt(a.nonce) > ethUtils.bufferToInt(b.nonce)) { return 1 } else { return -1 }; return 0 };
 
                         let pldlist = []; let nclist = [];
-                        let rlplist = this.bidRecords[this.initHeight][address].sort(compare).slice(0, 100);
+                        let rlplist = this.bidRecords[this.initHeight][address].sort(compare);
 
                         let rlpObjs = rlplist.map((r) => {
                                 nclist.push(r.toJSON()[0]); // nonce
