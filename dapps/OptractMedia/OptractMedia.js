@@ -37,9 +37,13 @@ class OptractMedia extends BladeIronClient {
                 super(rpcport, rpchost, options);
 
 		// There are three parts of data in an Optract block:
-		// 1. Notary Records: original, applause, praise, and critcize
-		// 2. Nonce Records: for each and every account, records summary of AP / TX usage.
-		// 3. Active Articles: for all active articles, records all accumulated interactions.
+		// ---------------------------------------------------
+		// First is the main block chain by design:
+		//  - Notary Records: original, applause, praise, and critcize. 
+		// The following two are deduced from Notary records:
+		//  - Nonce Records: for each and every account, records summary of AP / TX usage.  
+		//  - Active Articles: for all active articles, records all accumulated interactions.   
+		//  
 		// In all these records above, referencing using blockNo and txHash (leaf) is a must.
 		//
 		// websocket-proxied pubsub event handler
