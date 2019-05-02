@@ -36,6 +36,12 @@ class OptractMedia extends BladeIronClient {
         {
                 super(rpcport, rpchost, options);
 
+		// There are three parts of data in an Optract block:
+		// 1. Notary Records: original, applause, praise, and critcize
+		// 2. Nonce Records: for each and every account, records summary of AP / TX usage.
+		// 3. Active Articles: for all active articles, records all accumulated interactions.
+		// In all these records above, referencing using blockNo and txHash (leaf) is a must.
+		//
 		// websocket-proxied pubsub event handler
 		this.handleValidate = (msgObj) =>
 		{
@@ -49,7 +55,9 @@ class OptractMedia extends BladeIronClient {
 			//    - no double likes
 			//    - no more than one reply to same article per block
 			// - valid signature
-			// - adding summary tx if necessary
+			// - adding to notary txpool
+			// - updating nonce records
+			// - updating active (article) records
 			//
 			// Note: active records will be generated and added before generating and submitting merkle root
 		}
