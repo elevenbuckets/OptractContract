@@ -154,7 +154,7 @@ contract BlockRegistry{
     }
 
     // query
-    function getSblockNo() external view returns (uint) {
+    function getBlockNo() external view returns (uint) {
         return sblockNo;
     }
 
