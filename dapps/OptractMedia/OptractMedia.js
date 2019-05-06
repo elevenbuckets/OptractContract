@@ -35,16 +35,17 @@ const mkdir_promise = (dirpath) =>
 // - connect to Ethereum, Optract Pubsub, and IPFS
 // * Get latest Optract block and IPFS location from smart contract
 // - loading the block and active records from IPFS.
-// - at the same time, send pending pool ID with last block info. <----- SPAMMING !!!!!!!!!!
 // Validator extra:
+// - at the same time, send pending pool ID with last block info. <----- Only allow validators to actively query pending pool 
 // - getting newer snapshot IPFS location and start merging with real-time new tx received
-// - determine effective merged pending state and send pending pool ID of it. This message frequency is critical, can't be too often, can't be too long.
+// - determine effective merged pending state and send out pending pool ID of it again. This message frequency is critical, can't be too often, can't be too long.
 // - repeat previous two steps in loops (until all master nodes agree?)
 // - Once reaching new block snapshot time, determine and send out effective merged pending pool ID
-// - Once reaching new block commition time, sync last round of pending pool ID before commiting new block merkle root on IPFS hashes to smart contract.
+// - Once reaching new block commit time, sync last round of pending pool ID before commiting new block merkle root on IPFS hashes to smart contract.
 // Client extra:
-// - getting newer snapshot IPFS location and start render UI
-// - whenever receiving valid new snapshot, rerender UI.
+// - getting newer snapshot IPFS location. <---- Only allow clients to passively receiving snapshots
+// - whenever receiving valid new snapshot, rerender UI. <---- or only rerender if tx count has increased by certain amounts...
+// - caching the last valid snopshot RLPx and response to requests. <---- ... but allow clients to resend last known snapshot RLPx (cached)
 // - indevidual pending tx can also be rendered, if desired. 
 // - if previously sent tx by client not found in latest snapshot, resend.
 // * Once detect new block commited, loop back to the begining star (*) 
