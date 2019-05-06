@@ -42,13 +42,13 @@ contract QOT is StandardToken {
     }
 
     // TODO: Making mining contract upgradable while limit owner from changing this arbitrarily
-    function setMiner(address _miner, uint _idx) ownerOnly external returns (bool) {
+    function setMining(address _miner, uint _idx) ownerOnly external returns (bool) {
 	//require(miners[_idx] == address(0)); // For debug, allow this to be changed many times
 	miners[_idx] = _miner;
 	return true;
     }
 
-    function queryMiner(uint _idx) external view returns(address) {
+    function queryMining(uint _idx) external view returns(address) {
         return miners[_idx];
     }
 
