@@ -35,7 +35,7 @@ const mkdir_promise = (dirpath) =>
 // - connect to Ethereum, Optract Pubsub, and IPFS
 // * Get latest Optract block and IPFS location from smart contract
 // - loading the block and active records from IPFS.
-// - at the same time, send pending pool ID with last block info
+// - at the same time, send pending pool ID with last block info. <----- SPAMMING !!!!!!!!!!
 // Validator extra:
 // - getting newer snapshot IPFS location and start merging with real-time new tx received
 // - determine effective merged pending state and send pending pool ID of it. This message frequency is critical, can't be too often, can't be too long.
