@@ -31,6 +31,23 @@ const mkdir_promise = (dirpath) =>
         return new Promise(__mkdirp(dirpath));
 }
 
+// Common actions
+// - connect to Ethereum, Optract Pubsub, and IPFS
+// * Get latest Optract block and IPFS location from smart contract
+// - loading the block and active records from IPFS.
+// - at the same time, send pending pool ID with last block info
+// Validator extra:
+// - getting newer snapshot IPFS location and start merging with real-time new tx received
+// - determine effective merged pending state and send pending pool ID of it. This message frequency is critical, can't be too often, can't be too long.
+// - repeat previous two steps in loops (until all master nodes agree?)
+// - Once reaching new block snapshot time, determine and send out effective merged pending pool ID
+// - Once reaching new block commition time, sync last round of pending pool ID before commiting new block merkle root on IPFS hashes to smart contract.
+// Client extra:
+// - getting newer snapshot IPFS location and start render UI
+// - whenever receiving valid new snapshot, rerender UI.
+// - indevidual pending tx can also be rendered, if desired. 
+// - if previously sent tx by client not found in latest snapshot, resend.
+// * Once detect new block commited, loop back to the begining star (*) 
 class OptractMedia extends BladeIronClient {
 	constructor(rpcport, rpchost, options)
         {
@@ -49,21 +66,32 @@ class OptractMedia extends BladeIronClient {
 		// websocket-proxied pubsub event handler
 		this.handleValidate = (msgObj) =>
 		{
-			//TODO: ("BI" marks tasks that will be done inside pubsub class in BladeIron)
-			// - necessary fields (BI)
-			// - nonce verification from leveldb
+			//TODO:
+			// - everything should be put into leveldb after loaded from IPFS for better search performance.
+			// If RLPx:
+			// 	- check necessary fields
+			// 	- nonce verification from pending txpool
+			// 	- baseBlock & baseActiveLeaf verifications, if any.
 			// - valid membership from main optract smart contract
-			// - valid AP balance check from both root-chain or side-chain records and leveldb
-			// - duplicated payload within same side block (BI)
+			// - prevent duplicated payload within same side block 
 			// - validate actions
 			//    - no double likes
-			//    - no more than one reply to same article per block
+			//    - AP balance 
 			// - valid signature
-			// - adding to notary txpool
-			// - updating nonce records
-			// - updating active (article) records
+			// If receiving valid snapshot, compare and generate merged records.
+			// - adding to pending txpool
+			// - updating nonce & AP records 
+			// - updating active article records (not on chain)
 			//
-			// Note: active records will be generated and added before generating and submitting merkle root
+			// Note: account summary records and tickets will be generated and added before generating and submitting merkle root
+		}
+
+		this.handleMsgs = (msgObj) =>
+		{
+			// - check necessary fields if RLPx
+			// - valid membership from main optract smart contract
+			// - valid signature
+			// - if receiving valid snapshot, start rendering updates.
 		}
 
 		// membership related
@@ -208,3 +236,5 @@ class OptractMedia extends BladeIronClient {
 
 	}
 }
+
+module.exports = OptractMedia;
