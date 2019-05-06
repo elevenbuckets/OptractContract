@@ -208,3 +208,5 @@ class OptractMedia extends BladeIronClient {
 
 	}
 }
+
+module.exports = OptractMedia;
