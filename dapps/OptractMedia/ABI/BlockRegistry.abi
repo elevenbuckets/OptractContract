@@ -1,0 +1,440 @@
+[
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "sblockTimeStep",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x17ca3256"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "validators",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x35aa2e44"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "managers",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x3d39c260"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "initHeight",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xa78eacdb"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "sblockNo",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xca0ebb56"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "blockHistory",
+    "outputs": [
+      {
+        "name": "blockHeight",
+        "type": "uint256"
+      },
+      {
+        "name": "merkleRoot",
+        "type": "bytes32"
+      },
+      {
+        "name": "ipfsAddr",
+        "type": "bytes32"
+      },
+      {
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xde250ace"
+  },
+  {
+    "inputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "constructor",
+    "signature": "constructor"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_initHeight",
+        "type": "uint256"
+      },
+      {
+        "name": "_merkleRoot",
+        "type": "bytes32"
+      },
+      {
+        "name": "_ipfsAddr",
+        "type": "bytes32"
+      }
+    ],
+    "name": "submitMerkleRoot",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0x41a88b9d"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "proof",
+        "type": "bytes32[]"
+      },
+      {
+        "name": "isLeft",
+        "type": "bool[]"
+      },
+      {
+        "name": "targetLeaf",
+        "type": "bytes32"
+      },
+      {
+        "name": "_merkleRoot",
+        "type": "bytes32"
+      }
+    ],
+    "name": "merkleTreeValidator",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "pure",
+    "type": "function",
+    "signature": "0xb8f69e37"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_nonce",
+        "type": "uint256"
+      },
+      {
+        "name": "_ipfs",
+        "type": "bytes32"
+      },
+      {
+        "name": "_since",
+        "type": "uint256"
+      },
+      {
+        "name": "_agree",
+        "type": "uint256"
+      },
+      {
+        "name": "_disagree",
+        "type": "uint256"
+      },
+      {
+        "name": "_reply",
+        "type": "bytes32"
+      },
+      {
+        "name": "_comment",
+        "type": "bytes32"
+      }
+    ],
+    "name": "calcLeaf",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xb07cceb4"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_nonce",
+        "type": "uint256"
+      },
+      {
+        "name": "_sender",
+        "type": "address"
+      },
+      {
+        "name": "_ipfs",
+        "type": "bytes32"
+      },
+      {
+        "name": "_since",
+        "type": "uint256"
+      },
+      {
+        "name": "_agree",
+        "type": "uint256"
+      },
+      {
+        "name": "_disagree",
+        "type": "uint256"
+      },
+      {
+        "name": "_reply",
+        "type": "bytes32"
+      },
+      {
+        "name": "_comment",
+        "type": "bytes32"
+      }
+    ],
+    "name": "calcLeaf2",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x84a3c1b8"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_account",
+        "type": "address"
+      },
+      {
+        "name": "_start",
+        "type": "uint256"
+      },
+      {
+        "name": "_end",
+        "type": "uint256"
+      },
+      {
+        "name": "_gain",
+        "type": "uint256"
+      },
+      {
+        "name": "_apUsed",
+        "type": "uint256"
+      },
+      {
+        "name": "_accReward",
+        "type": "uint256"
+      }
+    ],
+    "name": "calcAccountStateSummaryLeaf",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x60e6c8c7"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "getSblockNo",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xfa7402c9"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_sblockNo",
+        "type": "uint256"
+      }
+    ],
+    "name": "getBlockInfo",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xbb141cf4"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_idx",
+        "type": "uint256"
+      }
+    ],
+    "name": "queryValidator",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x810e0b20"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "queryManagers",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address[4]"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xca48c69d"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_newValidator",
+        "type": "address"
+      },
+      {
+        "name": "_idx",
+        "type": "uint256"
+      }
+    ],
+    "name": "setValidator",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0xabb9406b"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_newManager",
+        "type": "address"
+      }
+    ],
+    "name": "setManager",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0xd0ebdbe7"
+  }
+]
