@@ -56,7 +56,7 @@ module.exports =
         {
 		return true;
         },
- 	MemberShip_updateELEMAddr_sanity(addr, jobObj)
+ 	MemberShip_updateQOTAddr_sanity(addr, jobObj)
         {
 		return true;
         },

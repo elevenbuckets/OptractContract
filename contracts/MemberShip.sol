@@ -8,10 +8,10 @@ contract MemberShip {
     address[3] public coreManagers;
     address[5] public managers;
     address public QOTAddr;
-    uint public totalId = 1;  // id start from 1
+    uint public totalId;  // id 0 is not used and will start from 1
     uint public fee = 0.01 ether;
     uint public memberPeriod = 40000;  // 40000 blocks ~ a week in rinkeby, for test only
-    bool public paused = false;
+    bool public paused;
 
     struct MemberInfo {
         address addr;
@@ -95,9 +95,9 @@ contract MemberShip {
     }
 
     function _assignMembership(address _addr) internal {
+        totalId += 1;  // make it start from 1
         addressToId[_addr] = totalId;
         memberDB[totalId] = MemberInfo(_addr, block.number, 0, bytes32(0), "");
-        totalId += 1;
     }
 
     function renewMembership() public payable feePaid whenNotPaused returns (uint) {

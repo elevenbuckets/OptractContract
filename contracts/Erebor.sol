@@ -113,8 +113,8 @@ contract Erebor{
 	}
 
 	// Contract constructor
-	constructor(bytes32 _init, address _QOTAddr, address _ELEMAddr, address _memberContracAddr) public payable {
-		require(msg.value >= fee);
+	constructor(bytes32 _init, address _QOTAddr, address _ELEMAddr, address _memberContracAddr) public {
+		// require(msg.value >= fee);
 		defender = msg.sender;
 		validator = msg.sender;
 		QOTAddr  = _QOTAddr;

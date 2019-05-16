@@ -1,10 +1,10 @@
 pragma solidity ^0.5.2;
 
-interface MemberShip {
+interface MemberShipInterface {
 
     function buyMembership() external payable returns (bool);
     function renewMembership() external payable returns (uint);
-
+    function assginKYCid(uint _id, bytes32 _kycid) external returns (bool);
     function addWhitelistApps(address _addr) external returns (bool);
     function rmWhitelistApps(address _addr) external returns (bool);
     function addPenalty(uint _id, uint _penalty) external returns (uint);

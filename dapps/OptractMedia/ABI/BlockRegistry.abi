@@ -318,7 +318,7 @@
   {
     "constant": true,
     "inputs": [],
-    "name": "getSblockNo",
+    "name": "getBlockNo",
     "outputs": [
       {
         "name": "",
@@ -328,7 +328,7 @@
     "payable": false,
     "stateMutability": "view",
     "type": "function",
-    "signature": "0xfa7402c9"
+    "signature": "0xfba0e4bb"
   },
   {
     "constant": true,
