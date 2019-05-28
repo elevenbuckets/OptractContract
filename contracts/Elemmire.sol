@@ -36,12 +36,12 @@ contract Elemmire is NFTokenEnumerable, NFTokenMetadata {
     }
 
     modifier miningOnly() {
-        require(super.isMiner(msg.sender) == true || msg.sender == owner, "not miner");
+        require(super.isMining(msg.sender) == true || msg.sender == owner, "not mining");
         _;
     }
 
-    modifier minerOrManager() {
-        require(super.isMinerOrManager(msg.sender) == true, "neither miner nor manager");
+    modifier miningOrManager() {
+        require(super.isMiningOrManager(msg.sender) == true, "neither mining nor manager");
         _;
     }
 
@@ -50,7 +50,7 @@ contract Elemmire is NFTokenEnumerable, NFTokenMetadata {
         super._setTokenUri(_tokenId, _uri);
     }
 
-    function burn(uint256 _tokenId) external minerOrManager {
+    function burn(uint256 _tokenId) external miningOrManager {
         super._burn(_tokenId);
     }
 

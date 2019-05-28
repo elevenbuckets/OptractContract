@@ -32,28 +32,24 @@ contract accessControl {
     function isManager(address _addr) internal view returns (bool) {
         if (_addr == address(0) ) {  // managers 3/4 may be 0
             return false;
-        } else if (_addr == managers[0] || _addr == managers[1] || _addr == managers[2] ||
-                   _addr == managers[3] || _addr == managers[4]) {
-            return true;
         } else {
-            return false;
+            return (_addr == managers[0] || _addr == managers[1] || _addr == managers[2] ||
+                    _addr == managers[3] || _addr == managers[4]);
         }
     }
 
-    function isMiner(address _addr) internal view returns (bool) {
+    function isMining(address _addr) internal view returns (bool) {
         if (_addr == address(0) ) {
             return false;
-        } else if (_addr == mining[0] || _addr == mining[1] || _addr == mining[2] ||
-                   _addr == mining[3] || _addr == mining[4] || _addr == mining[5] ||
-                   _addr == mining[6]){
-            return true;
         } else {
-            return false;
+            return (_addr == mining[0] || _addr == mining[1] || _addr == mining[2] ||
+                    _addr == mining[3] || _addr == mining[4] || _addr == mining[5] ||
+                    _addr == mining[6]);
         }
     }
 
-    function isMinerOrManager(address _addr) internal view returns (bool) {
-        if (isMiner(_addr) || isManager(_addr)) {
+    function isMiningOrManager(address _addr) internal view returns (bool) {
+        if (isMining(_addr) || isManager(_addr)) {
             return true;
         } else {
             return false;

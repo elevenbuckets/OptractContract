@@ -45,5 +45,14 @@ module.exports =
         QOT_allowance_sanity(addr, jobObj)
         {
                 return true;
-        }
+        },
+
+        QOT_isMining_sanity(addr, jobObj)
+	{
+		return true;
+	},
+        QOT_queryMining_sanity(addr, jobObj)
+	{
+		return true;
+	}
 }

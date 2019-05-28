@@ -167,6 +167,19 @@ contract BlockRegistry{
         return validators[_idx];
     }
 
+    function isValidator() external view returns (bool) {
+        if (msg.sender == address(0)) {
+            return false;
+        } else {
+            return (msg.sender == validators[0] || msg.sender == validators[1] || msg.sender == validators[2] ||
+                    msg.sender == validators[3] || msg.sender == validators[4] || msg.sender == validators[5] ||
+                    msg.sender == validators[6] || msg.sender == validators[7] || msg.sender == validators[8] ||
+                    msg.sender == validators[9] || msg.sender == validators[10] || msg.sender == validators[11] ||
+                    msg.sender == validators[12] || msg.sender == validators[13] || msg.sender == validators[14] ||
+                    msg.sender == validators[15]);
+        }
+    }
+
     function queryManagers() external view returns (address[4] memory) {
         return managers;
     }

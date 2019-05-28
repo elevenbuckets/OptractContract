@@ -10,6 +10,7 @@ interface BlockRegistryInterface {
     function getBlockNo() external view returns (uint);
     function getBlockInfo(uint _sblockNo) external view returns (uint, bytes32, string memory);
     function queryValidator(uint _idx) external view returns (address);
+    function isValidator() external view returns (bool);
     function queryManagers() external view returns (address[4] memory);
     function setValidator(address _newValidator, uint _idx) external returns (bool);
     function setManager(address _newManager) external returns (bool);

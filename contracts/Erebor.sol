@@ -3,7 +3,7 @@ pragma solidity ^0.5.2;
 import "./ERC721/math/safe-math.sol";
 import "./QOTInterface.sol";
 import "./ElemmireInterface.sol";
-import "./MemberShip.sol";
+import "./MemberShipInterface.sol";
 
 // Comments for the adaption for OptractContract
 // * The main purpose of this "game" is to output random numbers AND give NFT (for endorsement in Optract)
@@ -41,9 +41,8 @@ contract Erebor{
 	uint constant public period_all = 20;  // 7 + 3 + 10
 	uint public initHeight;
 	bytes32 public difficulty = 0x0000000fffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
-	uint public fee = 10000000000000000;
-	bool public setup = false;
-	uint public playercount = 0;
+	bool public setup;
+	uint public playercount;
         uint public ticketsToWinNFT = 2;  // use small number for debug only
 
 	struct playerInfo {
@@ -86,13 +85,8 @@ contract Erebor{
 		_;
 	}
 
-	modifier feePaid() {
-		require(msg.value >= fee);
-		_;
-	}
-
 	modifier isActiveMember(){
-                require(MemberShip(memberContractAddr).addrIsActiveMember(msg.sender));
+                require(MemberShipInterface(memberContractAddr).addrIsActiveMember(msg.sender));
                 _;
         }
 
@@ -114,9 +108,8 @@ contract Erebor{
 
 	// Contract constructor
 	constructor(bytes32 _init, address _QOTAddr, address _ELEMAddr, address _memberContracAddr) public {
-		// require(msg.value >= fee);
 		defender = msg.sender;
-		validator = msg.sender;
+		validator = msg.sender;  // for now
 		QOTAddr  = _QOTAddr;
                 ELEMAddr = _ELEMAddr;
                 memberContractAddr = _memberContracAddr;
@@ -124,20 +117,49 @@ contract Erebor{
 		require(fortify(_init) == true);
 	}
 
-	// WinnerOnly
-	// function withdraw(uint _tokenId) internal WinnerOnly returns (bool) {
-	//         // only one player win NFT; make sure winner can claim the reward after next game started
-	// 	require(block.number > playerDB[msg.sender].initHeightJoined + period_all);
-	// 	require(block.number < playerDB[msg.sender].initHeightJoined + period_all + 7);
+	function fortify(bytes32 defense) public defenderOnly NewGameOnly returns (bool) {
+		require(defense > difficulty);
 
-	// 	// uint256 reward = uint256(address(this).balance).mul(uint256(6)) / uint256(10);
-	// 	// require(QOTInterface(QOTAddr).mint(msg.sender) == true);
-	// 	// require(msg.sender.send(reward) == true);
-                // winner = msg.sender;
-                // // NFTClaimed = true;
-                // require(iELEM(ELEMAddr).mint(msg.sender, _tokenId, uri) == true);
-	// 	return true;
-	// }
+		initHeight = block.number;
+
+                playerDB[msg.sender] = playerInfo(initHeight, bytes32(0), false);
+		playercount += 1;
+		setup = true;
+
+	        prevboard = board;
+	        board = defense;
+
+		return true;
+	}
+
+	// Join game
+	function challenge(bytes32 scoreHash) public payable isActiveMember notDefender gameStarted returns (bool) {
+	        // require(msg.value >= fee);
+		require(playerDB[msg.sender].initHeightJoined < initHeight, "challange: 1");
+		require(block.number > initHeight + 7 && block.number <= initHeight + 10, "challange: 2");
+		require(playercount + 1 <= maxPlayer, "challange: 3");
+
+		playerDB[msg.sender] = playerInfo(initHeight, scoreHash, false);
+		playercount += 1;
+
+		return true;
+	}
+
+	function testOutcome(bytes32 secret, uint blockNo) public gameStarted view returns (bytes32 _board, bool[32] memory _slots) {
+		require(block.number > initHeight + 7 && block.number <= initHeight + 10, 'testoutcome: 1');
+		require(block.number - blockNo < 7, 'testoutcome: 2');
+		require(blockNo <= block.number - 1 && blockNo >= initHeight + 7 && blockNo < initHeight + 10, 'testoutcome: 3');
+
+		_board = keccak256(abi.encodePacked(msg.sender, secret, blockhash(blockNo)));
+
+		for (uint i = 0; i <= 31; i++) {
+			if(_board[i] < board[i]) {
+				_slots[i] = true;
+			}
+		}
+
+		return (_board, _slots);
+	}
 
         // for debug purpose
 	bool public debug1 = false;
@@ -149,7 +171,7 @@ contract Erebor{
                 debug3 = _debug3;
         }
 
-	function claimLotteReward( // this happens after end of a game, next round may started
+	function claimLotteReward(  // this happens after end of a game, next round may started
 	    bytes32 secret,
 	    string memory slots,
 	    uint blockNo,
@@ -272,54 +294,6 @@ contract Erebor{
                 }
         }
 
-	function getPlayerInfo(address _addr) public view returns (uint, bytes32, bool) {
-		return (playerDB[_addr].initHeightJoined, playerDB[_addr].scoreHash, playerDB[_addr].claimed);
-	}
-
-	function fortify(bytes32 defense) public payable defenderOnly NewGameOnly returns (bool) {
-		require(defense > difficulty);
-
-		initHeight = block.number;
-
-                playerDB[msg.sender] = playerInfo(initHeight, bytes32(0), false);
-		playercount += 1;
-		setup = true;
-
-	        prevboard = board;
-	        board = defense;
-
-		return true;
-	}
-
-	// Join game
-	function challenge(bytes32 scoreHash) public payable isActiveMember notDefender gameStarted returns (bool) {
-		require(playerDB[msg.sender].initHeightJoined < initHeight, "challange: 1");
-		require(block.number > initHeight + 7 && block.number <= initHeight + 10, "challange: 2");
-		require(playercount + 1 <= maxPlayer, "challange: 3");
-
-		playerDB[msg.sender] = playerInfo(initHeight, scoreHash, false);
-
-		playercount += 1;
-
-		return true;
-	}
-
-	function testOutcome(bytes32 secret, uint blockNo) public gameStarted view returns (bytes32 _board, bool[32] memory _slots) {
-		require(block.number > initHeight + 7 && block.number <= initHeight + 10, 'testoutcome: 1');
-		require(block.number - blockNo < 7, 'testoutcome: 2');
-		require(blockNo <= block.number - 1 && blockNo >= initHeight + 7 && blockNo < initHeight + 10, 'testoutcome: 3');
-
-		_board = keccak256(abi.encodePacked(msg.sender, secret, blockhash(blockNo)));
-
-		for (uint i = 0; i <= 31; i++) {
-			if(_board[i] < board[i]) {
-				_slots[i] = true;
-			}
-		}
-
-		return (_board, _slots);
-	}
-
 	function winningNumber(uint blockNo, bytes32 _board) public view returns (bytes32) {
 	        require(blockNo <= block.number - 1);
 	        return keccak256(abi.encodePacked(_board, blockhash(blockNo)));
@@ -349,17 +323,8 @@ contract Erebor{
 	        ticketSeed = blockhash(_initHeight+8);
 
                 // reset the status of previous game (or put it in challange?)
-	        // NFTClaimed = false;   // reset the status of previous game
 	        winner = address(0);
 	        return true;
-        }
-
-        function getBlockInfo(uint _initHeight) public view returns(bytes32, string memory){
-	        return (battleHistory[_initHeight].merkleRoot, battleHistory[_initHeight].ipfsAddr);
-        }
-
-        function getBlockhash(uint blockNo) external view returns (bytes32) {
-                return blockhash(blockNo);
         }
 
         function compareScore(bytes32 secret, string memory slotString, uint blockNo, bytes32 _board, bytes32 score) public view returns (bool){
@@ -374,7 +339,6 @@ contract Erebor{
 		                out |= bytes32(myboard[i] & 0xff ) >> (i*8);
 			}
                 }
-
 		return out == score;
 	}
 
@@ -397,15 +361,6 @@ contract Erebor{
 		return out;
 	}
 
-        function hexToChar(byte _b) internal pure returns (byte c) {
-                // convert a hex value (0-f) to it's corresponding string
-                if (uint8(_b) < 10) {
-                        return byte(uint8(_b) + 0x30);  // '0' to '9'
-                } else {
-                        return byte(uint8(_b) + 0x57);  // 'a' to 'z'
-                }
-        }
-
         // convert bytes32 to hex "string"
         function bytes32ToString(bytes32 b32) public pure returns (string memory out) {
                 bytes memory s = new bytes(64);
@@ -417,6 +372,28 @@ contract Erebor{
                         s[i*2+1] = hexToChar(lo);
                 }
                 out = string(s);
+        }
+
+        function hexToChar(byte _b) internal pure returns (byte c) {
+                // convert a hex value (0-f) to it's corresponding string
+                if (uint8(_b) < 10) {
+                        return byte(uint8(_b) + 0x30);  // '0' to '9'
+                } else {
+                        return byte(uint8(_b) + 0x57);  // 'a' to 'z'
+                }
+        }
+
+	// external query functions
+	function getPlayerInfo(address _addr) public view returns (uint, bytes32, bool) {
+		return (playerDB[_addr].initHeightJoined, playerDB[_addr].scoreHash, playerDB[_addr].claimed);
+	}
+
+        function getBlockInfo(uint _initHeight) public view returns(bytes32, string memory){
+	        return (battleHistory[_initHeight].merkleRoot, battleHistory[_initHeight].ipfsAddr);
+        }
+
+        function getBlockhash(uint blockNo) external view returns (bytes32) {
+                return blockhash(blockNo);
         }
 
         // upgrade and ownership
@@ -455,12 +432,13 @@ contract Erebor{
         }
 
         // fallback
-        function () defenderOnly gameStalled external {
-            winner = address(0);
+        function fallback() defenderOnly gameStalled public {  // should eventually make it a internal function
             setup = false;
             // board = bytes32(0);
             playercount = 0;
-            // require(withdraw());
-	    // require(msg.sender.send(address(this).balance) == true);  // for debug
+        }
+
+        function () defenderOnly gameStalled external {
+            fallback();
         }
 }

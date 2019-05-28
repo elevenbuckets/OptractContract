@@ -6,7 +6,7 @@ contract QOT is StandardToken {
     uint8 private _decimals = 12;
     uint256 public _maxSupply = 100000000000000000000000;
     address public owner;
-    address[16] public miners;
+    address[16] public mining;
     // uint256 public reward = 15000000000000;
 
     modifier ownerOnly() {
@@ -14,14 +14,14 @@ contract QOT is StandardToken {
        _;
     }
 
-    modifier minerOnly() {
+    modifier miningOnly() {
         require(msg.sender != address(0));
-        require(msg.sender == miners[0] || msg.sender == miners[1] || msg.sender == miners[2] || 
-                msg.sender == miners[3] || msg.sender == miners[4] || msg.sender == miners[5] || 
-                msg.sender == miners[6] || msg.sender == miners[7] || msg.sender == miners[8] || 
-                msg.sender == miners[9] || msg.sender == miners[10] || msg.sender == miners[11] || 
-                msg.sender == miners[12] || msg.sender == miners[13] || msg.sender == miners[14] ||
-                msg.sender == miners[15]);
+        require(msg.sender == mining[0] || msg.sender == mining[1] || msg.sender == mining[2] ||
+                msg.sender == mining[3] || msg.sender == mining[4] || msg.sender == mining[5] ||
+                msg.sender == mining[6] || msg.sender == mining[7] || msg.sender == mining[8] ||
+                msg.sender == mining[9] || msg.sender == mining[10] || msg.sender == mining[11] ||
+                msg.sender == mining[12] || msg.sender == mining[13] || msg.sender == mining[14] ||
+                msg.sender == mining[15]);
         _;
     }
 
@@ -42,18 +42,31 @@ contract QOT is StandardToken {
     }
 
     // TODO: Making mining contract upgradable while limit owner from changing this arbitrarily
-    function setMining(address _miner, uint _idx) ownerOnly external returns (bool) {
-	//require(miners[_idx] == address(0)); // For debug, allow this to be changed many times
-	miners[_idx] = _miner;
+    function setMining(address _mining, uint _idx) ownerOnly external returns (bool) {
+	//require(mining[_idx] == address(0)); // For debug, allow this to be changed many times
+	mining[_idx] = _mining;
 	return true;
     }
 
     function queryMining(uint _idx) external view returns(address) {
-        return miners[_idx];
+        return mining[_idx];
     }
 
-    function mint(address toAddress, uint _amount) minerOnly external returns (bool) {
-        // assume verified by the miner() function
+    function isMining() external view returns(bool){
+        if (msg.sender == address(0)){
+            return false;
+        } else {
+            return(msg.sender == mining[0] || msg.sender == mining[1] || msg.sender == mining[2] ||
+                    msg.sender == mining[3] || msg.sender == mining[4] || msg.sender == mining[5] ||
+                    msg.sender == mining[6] || msg.sender == mining[7] || msg.sender == mining[8] ||
+                    msg.sender == mining[9] || msg.sender == mining[10] || msg.sender == mining[11] ||
+                    msg.sender == mining[12] || msg.sender == mining[13] || msg.sender == mining[14] ||
+                    msg.sender == mining[15]);
+        }
+    }
+
+    function mint(address toAddress, uint _amount) miningOnly external returns (bool) {
+        // assume verified by the mining() function
 	require(totalSupply < _maxSupply);
 	_balances[toAddress] += _amount;
 	totalSupply += _amount;
