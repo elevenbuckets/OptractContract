@@ -5,7 +5,7 @@ import "./erc721-token-receiver.sol";
 import "../math/safe-math.sol";
 import "../utils/supports-interface.sol";
 import "../utils/address-utils.sol";
-import "../../accessControl.sol";
+import "../utils/accessControl.sol";
 
 /**
  * @dev Implementation of ERC-721 non-fungible token standard.
