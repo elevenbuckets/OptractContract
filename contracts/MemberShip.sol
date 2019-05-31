@@ -1,6 +1,6 @@
 pragma solidity ^0.5.2;
 
-import "./QOTInterface.sol";
+import "./Interfaces/QOTInterface.sol";
 
 
 contract MemberShip {

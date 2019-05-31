@@ -1,9 +1,9 @@
 pragma solidity ^0.5.2;
 
 import "./ERC721/math/safe-math.sol";
-import "./QOTInterface.sol";
-import "./ElemmireInterface.sol";
-import "./MemberShipInterface.sol";
+import "./Interfaces/QOTInterface.sol";
+import "./Interfaces/BadgeInterface.sol";
+import "./Interfaces/MemberShipInterface.sol";
 
 // Comments for the adaption for OptractContract
 // * The main purpose of this "game" is to output random numbers AND give NFT (for endorsement in Optract)
@@ -28,7 +28,7 @@ import "./MemberShipInterface.sol";
 //  * during period2 (btw. `n` and `m`) players get tickets on sc
 //  * player obtain ticket in the form `ticket[i] = hash(score + bn[m-1] + i)` where 0<=i<5, depend on score
 //
-contract Erebor{
+contract MetaMining{
 	using SafeMath for uint256;
 	// Variables
 	address public defender;
@@ -230,7 +230,7 @@ contract Erebor{
                 if (debug3) {
                     if (winningTickets.length >= ticketsToWinNFT) {  // use small number for debug only
                             string memory uri = bytes32ToString(claimHash);
-                            ElemmireInterface(ELEMAddr).mint(msg.sender, uint(claimHash), uri);
+                            BadgeInterface(ELEMAddr).mint(msg.sender, uint(claimHash), uri);
                     }
                 }
 

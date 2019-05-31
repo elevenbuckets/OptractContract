@@ -6,7 +6,7 @@ pragma solidity 0.5.2;
  * See https://github.com/ethereum/EIPs/blob/master/EIPS/eip-721.md.
  */
 
-interface ElemmireInterface
+interface BadgeInterface
 {
 
   /**

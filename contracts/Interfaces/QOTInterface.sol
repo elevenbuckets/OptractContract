@@ -1,5 +1,5 @@
 pragma solidity ^0.5.2;
-import "./ERC20/tokens/StandardToken.sol";
+import "../ERC20/tokens/StandardToken.sol";
 
 contract QOTInterface is StandardToken {
     function symbol() public view returns (string memory);
