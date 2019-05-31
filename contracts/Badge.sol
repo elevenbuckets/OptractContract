@@ -4,19 +4,14 @@ import "./ERC721/tokens/nf-token-enumerable.sol";
 import "./ERC721/tokens/nf-token-metadata.sol";
 
 
-contract Elemmire is NFTokenEnumerable, NFTokenMetadata {
-    // features to be implemented:
-    // * finer access control other than "managerOnly" / "miningOnly"
-    // * upgradable
-    // * able or easy to integrate with the "Trade" contract + state channels
-
+contract Badge is NFTokenEnumerable, NFTokenMetadata {
     // for now, only 5 managers and 5 minable/burnable contracts (see accessControl.sol)
     address public owner;
     bool public paused = false;
 
     constructor() public {
-        nftName = "Elemmire";
-        nftSymbol = "ELEM";
+        nftName = "Optract Badge";  // temporary name
+        nftSymbol = "OPB";
         owner = msg.sender;
     }
 
