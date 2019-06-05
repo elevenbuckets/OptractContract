@@ -1,5 +1,5 @@
 pragma solidity ^0.5.2;
-import "./ERC721/math/safe-math.sol";
+import "./lib/safe-math.sol";
 
 
 contract BlockRegistry{

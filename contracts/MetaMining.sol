@@ -1,8 +1,7 @@
 pragma solidity ^0.5.2;
 
-import "./ERC721/math/safe-math.sol";
+import "./lib/safe-math.sol";
 import "./Interfaces/QOTInterface.sol";
-import "./Interfaces/BadgeInterface.sol";
 import "./Interfaces/MemberShipInterface.sol";
 
 // Comments for the adaption for OptractContract
@@ -230,7 +229,7 @@ contract MetaMining{
                 if (debug3) {
                     if (winningTickets.length >= ticketsToWinNFT) {  // use small number for debug only
                             string memory uri = bytes32ToString(claimHash);
-                            BadgeInterface(ELEMAddr).mint(msg.sender, uint(claimHash), uri);
+                            // BadgeInterface(ELEMAddr).mint(msg.sender, uint(claimHash), uri);
                     }
                 }
 
