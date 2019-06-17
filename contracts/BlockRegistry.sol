@@ -10,27 +10,28 @@ contract BlockRegistry{
     address[16] public validators;
     uint public nowSblockNo;  // start from 1
     uint public sblockTimeStep = 60 minutes;  // what's the balance between UX and cost-control?
+    uint public opRound;
+    uint public latestLotteryBlock;
 
     struct blockStat{
         uint blockHeight;  // block.number while submission
-        bytes32 merkleRoot;
+        bytes32 merkleRoot;  // IPFs hash string to bytes32: 
         // string ipfsAddr;
         // save ipfsAddr in bytes32 (instead of string) to save storage; to convert ipfsAddr from
         // string to hex: 1. strip the 'Qm', 2. convert to hex
         bytes32 ipfsAddr;
         uint timestamp;
+        uint uniqArticleCount;
+        uint voteCount;
+        uint opRound;
+        // the following could have no values other than default
+        uint lotteryWinningNumber;
+        bytes32 lotteryIpfs;
+        uint minSuccessRate;  // shoud be an integer between 0 and 100
+        bytes32 succesRateDB;  // IPFS contain success rate
+        bytes32 finanListIpfs;
     }
     mapping (uint => blockStat) public blockHistory;
-
-    // struct articleStatStruct{
-    //     address authorAddr;
-    //     uint since;
-    //     uint8 status;  // should contain: unknown / active / archived / flagged / debate /  ...
-    //     uint8 category;  // contain politics / blockchain / ...? or?
-    //     uint32 agree;  // uint32 ~ 4e9
-    //     uint32 disagree;
-    // }
-    // mapping (bytes32 => articleStatStruct) public articleStat;
 
 
     constructor() public {
@@ -46,7 +47,7 @@ contract BlockRegistry{
                        address(0), address(0), address(0), address(0), address(0),
                        address(0), address(0), address(0)];
         // prevTimeStamp = block.timestamp - sblockTimeStep;
-        blockHistory[0] = blockStat(block.number, '0x0', '0x0', block.timestamp);  // or some more "meaningful" data?
+        blockHistory[0] = blockStat(block.number, '0x0', '0x0', block.timestamp, 0, 0, 0, 0, '0x0', 0, '0x0', '0x0');
         nowSblockNo = 1;
     }
 
@@ -68,10 +69,32 @@ contract BlockRegistry{
         _;
     }
 
-    function submitMerkleRoot(bytes32 _merkleRoot, bytes32 _ipfsAddr) public validatorOnly returns (bool) {
+    function startRound() public validatorOnly returns(bool) {
+        // this is a one-time only function; opRound NEVER stop once the variable `opRound` is > 0
+        // not sure if it makes "stack too deep" if put this function into submitMerkleRoot()
+        require(opRound == 0);
+        opRound = 1;
+        return true;
+    }
+
+
+    function submitMerkleRoot(
+        bytes32 _merkleRoot,
+        bytes32 _ipfsAddr,
+        uint _uniqArticleCount,
+        uint _voteCount,
+        bytes32 _lotteryIpfs,
+        uint _minSuccessRate,
+        bytes32 _finalListIpfs,
+        bytes32 _successRateDB,
+        bool newOpRound,
+        bool newLottery
+    ) public validatorOnly returns (bool) {
         // In other words, this function generate a new sblock.
         // * block.number at this point is end of this sblock
         // * block.number+1 is begin of next sblock
+        // ToDo
+        //   * (?) add a function to change opRound to 0 to (temporary) disable the round (or add a bool to do that?).
 
         // comment some "require" for test purpose
         // require(block.timestamp >= blockHistory[nowSblockNo] + sblockTimeStep, 'too soon');
@@ -80,11 +103,25 @@ contract BlockRegistry{
         require(blockHistory[nowSblockNo].merkleRoot != _merkleRoot && blockHistory[nowSblockNo].ipfsAddr != _ipfsAddr);  // prevent re-submission
         require(blockHistory[nowSblockNo+1].blockHeight == 0 && blockHistory[nowSblockNo+1].merkleRoot == 0x0
                 && blockHistory[nowSblockNo+1].ipfsAddr == 0x0 && blockHistory[nowSblockNo+1].timestamp == 0);
+        require(newOpRound != newLottery);  // these two should not happen in same sblock
         // require: ...
 
         // If one can control a blockhash, is it expensive or not to control second one?
-        blockHistory[nowSblockNo] = blockStat(block.number, _merkleRoot, _ipfsAddr, block.timestamp);
+        if (newLottery) {
+            uint _winNum = calcWinningNumber(nowSblockNo);
+            latestLotteryBlock = block.number;
+
+            blockHistory[nowSblockNo] = blockStat(block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _voteCount, opRound,
+                                                 _winNum, _lotteryIpfs, _minSuccessRate, _successRateDB, _finalListIpfs);
+        } else {
+            blockHistory[nowSblockNo] = blockStat(block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _voteCount, opRound,
+                                                 0, '0x0', _minSuccessRate, _successRateDB, _finalListIpfs);
+        }
         nowSblockNo += 1;
+
+        if (newOpRound) {
+            opRound += 1;
+        }
         // note: need to wait one more block.number in order to have the corresponding winning ticket of this sblock
 
         return true;
