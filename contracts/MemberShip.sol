@@ -10,7 +10,9 @@ contract MemberShip {
     address public QOTAddr;
     uint public totalId;  // id 0 is not used and will start from 1
     uint public fee = 0.01 ether;
-    uint public memberPeriod = 40000;  // 40000 blocks ~ a week in rinkeby, for test only
+    // uint public memberPeriod = 40000;  // 40000 blocks ~ a week in rinkeby, for test only
+    // todo: make it at some level bind with real time; probably make it adjustable for debugging
+    uint public memberPeriod = 160000;  // 40000 blocks ~ a week in rinkeby, for test only
     bool public paused;
 
     struct MemberInfo {

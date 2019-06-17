@@ -1,6 +1,6 @@
 pragma solidity ^0.5.2;
 import "./ERC20.sol";
-import "../../ERC721/math/safe-math.sol";
+import "../../lib/safe-math.sol";
 
 contract StandardToken is ERC20 {
     using SafeMath for uint256;
