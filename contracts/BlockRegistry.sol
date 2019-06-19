@@ -18,7 +18,6 @@ contract BlockRegistry{
     uint public roundVote2Count;
     uint public vote1Threshold = 100;
     uint public vote2Threshold = 500;
-    uint public lotteryWinRange;
 
     struct blockStat{
         address validator;
@@ -38,7 +37,8 @@ contract BlockRegistry{
         bytes32 finanListIpfs;
     }
     mapping (uint => blockStat) public blockHistory;  // sblockNo to blockStat
-
+    mapping (uint => uint) public lotterySblockNo;  // give `opRound`, return the corresponding `sblock_no`
+    // mapping (uint => uint) public finalistSblockNo;   // necessary?
 
     constructor() public {
         // always INITIALIZE ARRAY VALUES!!!
@@ -114,7 +114,7 @@ contract BlockRegistry{
         // require: ...
         require(_minSuccessRate >= 0 && _minSuccessRate < 100);
 
-        // determine which phase of a OpRound: genesis round, lottery, lottery-reveal, finalist, or regular (nothing happened) sblock
+        // determine which phase of a opRound: genesis round, lottery, lottery-reveal, finalist, or regular (nothing happened) sblock
         // note that two kind of votes use same voteCount in smart contract
         if (opRound == 0 && articleCount + _uniqArticleCount >= 100) {  // genesis
             require(_lotteryIpfs == '0x0' && _minSuccessRate == 0 && _finalListIpfs == '0x0' && _successRateDB == '0x0');
@@ -137,7 +137,7 @@ contract BlockRegistry{
             roundVote2Count = 0;
             articleCount = 0;
             latestLotterySblock = nowSblockNo;
-            lotteryWinRange = 0;  // reset previous value, will set a value later in `lottery-reveal`
+            lotterySblockNo[opRound] = nowSblockNo;
         } else if (roundVote2Count + _vote2Count >= vote2Threshold && opRound != 0 && latestLotterySblock > nowSblockNo) { // finalist
             require(_lotteryIpfs == '0x0' && _minSuccessRate == 0);
             roundVote1Count += _vote1Count; articleCount += _uniqArticleCount;
@@ -147,16 +147,22 @@ contract BlockRegistry{
             );
             opRound += 1;
             roundVote2Count = 0;
-            // latestLotterySblock = 0; lotteryWinRange = 0;  // also reset these values?
+            // latestLotterySblock = 0;  // also reset? 
+            // finalistSblockNo[opRound] = nowSblockNo;
         } else {  // regular sblock, only accumulate votes
             require(_lotteryIpfs == '0x0' && _minSuccessRate == 0 && _finalListIpfs == '0x0' && _successRateDB == '0x0');
             roundVote1Count += _vote1Count; roundVote2Count += _vote2Count; articleCount += _uniqArticleCount;
-            blockHistory[nowSblockNo] = blockStat(
-                msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
-                0, '0x0', 0, '0x0', '0x0'
-            );
-            if (latestLotterySblock == nowSblockNo - 1 &&  _lotteryWinRange > 0 && lotteryWinRange == 0) {  // lottery-reveal
-                lotteryWinRange = _lotteryWinRange;
+            if (latestLotterySblock == nowSblockNo - 1 &&  _lotteryWinRange > 0) {  // lottery-reveal
+                blockHistory[nowSblockNo] = blockStat(
+                    msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
+                    _lotteryWinRange, '0x0', 0, '0x0', '0x0'
+                );  // or don't put lotteryWinRange into blockRegistry? If so, require another global mapping sblockNo->lotteryWinRange
+                // lotteryRevealSblockNo[opRound] = nowSblockNo;
+            } else {
+                blockHistory[nowSblockNo] = blockStat(
+                    msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
+                    0, '0x0', 0, '0x0', '0x0'
+                );
             }
         }
         nowSblockNo += 1;
@@ -165,11 +171,6 @@ contract BlockRegistry{
     }
 
     // Lottery related
-    // function calcLatestWinningNumber() public view returns(uint) {
-    //     require(nowSblockNo > 1);
-    //     return calcWinningNumber(nowSblockNo-1, 0x0);
-    // }
-
     function calcWinningNumber(uint _sblockNo, bytes32 _bhash) public view returns(uint) {
         require(_sblockNo > 0 && _sblockNo < nowSblockNo);
         require(blockHistory[_sblockNo].merkleRoot != 0x0);
@@ -183,7 +184,54 @@ contract BlockRegistry{
         return uint(keccak256(abi.encodePacked(blockHistory[_sblockNo].merkleRoot, _bhash)));
     }
 
-    function isWinningAddress() public view returns() {
+    function _getByteHex1(bytes1 _c, uint8 _digit) internal pure returns(bytes1){
+        if (uint(_digit) % 2 == 1) {
+            return bytes1(uint8(_c)%16);
+        } else {
+            return bytes1(uint8(_c)/16);
+        }
+    }
+
+    function _getAddressNthDigit(address _addr, uint8 _digit) internal pure returns(bytes1){
+        require(_digit >=0 && _digit <=39);
+        bytes1 _c =  bytes20(_addr)[(_digit - _digit%2)/2];
+        return _getByteHex1(_c, _digit);
+    }
+
+    function _getBytes32HexNthDigit(bytes32 _ticket, uint8 _digit) internal pure returns(bytes1){
+        require(_digit >=0 && _digit <=63);  // treat bytes32 as 64 hex characters
+        bytes1 _c =  _ticket[(_digit - _digit%2)/2];
+        return _getByteHex1(_c, _digit);
+    }
+
+    function isWinningAddress(uint _sblockNo, address _addr) public view returns(bool) {
+        // the rule of winning is in 'libSampleTicket.js' in 'OptractP2PCli' (here use commit a3f2651)
+        require(blockHistory[_sblockNo].lotteryWinningNumber != 0 && blockHistory[_sblockNo+1].lotteryWinningNumber != 0);
+        uint256 winNumber = blockHistory[_sblockNo].lotteryWinningNumber;
+        uint256 lotteryWinRange = blockHistory[_sblockNo+1].lotteryWinningNumber;
+        bytes20 winHash = bytes20(uint160(winNumber % (2**160)));  // not sure if it's safe to directly 'bytes20(uint256)', so take the remainder anyway
+        uint8 refDigit = uint8(_getBytes32HexNthDigit(winHash, 0)) % 4;  // note: this is count from behind
+        // assume in 'sampleN()' of 'libSampleTicket.js': (1) 'digitRange' is fixed at 4; (2) 'winHexWidth' is fixed at 4
+        bytes1 winHexChar1 = _getBytes32HexNthDigit(winHash, 63 - refDigit);
+        bytes1 winHexChar2 = bytes1((uint8(winHexChar1) + 1) % 16);
+        bytes1 winHexChar3 = bytes1((uint8(winHexChar2) + 1) % 16);
+        bytes1 winHexChar4 = bytes1((uint8(winHexChar3) + 1) % 16);
+        bytes1 addrChar = _getAddressNthDigit(_addr, 39 - refDigit);
+        if (addrChar == winHexChar1 || addrChar == winHexChar2 || addrChar == winHexChar3 || addrChar == winHexChar4) {
+            if (_isInRange(winNumber, uint160(_addr), lotteryWinRange, 160)){
+                return true;
+            }
+            // all other conditions returns false
+        }
+    }
+
+    function _isInRange(uint _center, uint _target, uint _width, uint8 bits) internal view returns(bool) {
+        require(bits == 160 || bits == 256);  // equivalent to bytes20 or bytes32; probably no need to restrict this
+        // yet to be implemented
+        uint _max;
+        uint _min;
+
+        return true;
     }
 
     function txExist(bytes32[] memory proof, bool[] memory isLeft, bytes32 txHash, uint _sblockNo) public view returns (bool){
