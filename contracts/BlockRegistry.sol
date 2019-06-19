@@ -10,15 +10,18 @@ contract BlockRegistry{
     address[16] public validators;
     uint public nowSblockNo;  // start from 1
     uint public sblockTimeStep = 60 minutes;  // what's the balance between UX and cost-control?
-    bool public opRoundStatus = true;  // need `true` for 1st round;is it redundant?
+    bool public opRoundStatus = true;  // need `true` for 1st round; or simply use "pause/unpause"?
     uint public opRound;
     uint public latestLotterySblock;
+    uint public articleCount;
     uint public roundVote1Count;
     uint public roundVote2Count;
-    uint public articleCount;
+    uint public vote1Threshold = 100;
+    uint public vote2Threshold = 500;
+    uint public lotteryWinRange;
 
     struct blockStat{
-        // address validator;
+        address validator;
         uint blockHeight;  // block.number while submission
         bytes32 merkleRoot;  // IPFs hash string to bytes32: 
         bytes32 ipfsAddr;  // string to hex (in js): ethUtils.bufferToHex(bs58.decode(ipfsHash).slice(2));
@@ -34,7 +37,7 @@ contract BlockRegistry{
         bytes32 succesRateDB;  // IPFS contain success rate
         bytes32 finanListIpfs;
     }
-    mapping (uint => blockStat) public blockHistory;
+    mapping (uint => blockStat) public blockHistory;  // sblockNo to blockStat
 
 
     constructor() public {
@@ -50,7 +53,7 @@ contract BlockRegistry{
                        address(0), address(0), address(0), address(0), address(0),
                        address(0), address(0), address(0)];
         // prevTimeStamp = block.timestamp - sblockTimeStep;
-        blockHistory[0] = blockStat(block.number, '0x0', '0x0', block.timestamp, 0, 0, 0, 0, 0, '0x0', 0, '0x0', '0x0');
+        blockHistory[0] = blockStat(msg.sender, block.number, '0x0', '0x0', block.timestamp, 0, 0, 0, 0, 0, '0x0', 0, '0x0', '0x0');
         nowSblockNo = 1;
     }
 
@@ -72,12 +75,22 @@ contract BlockRegistry{
         _;
     }
 
+    // some adjustable functions only for developing phase
     function toggleGame() public validatorOnly returns(uint) {
-        // this function is for dev only, should not exist in real product
         opRoundStatus = !opRoundStatus;
         return opRound;
     }
 
+    function updateVote1Threshold(uint _threshold) public validatorOnly returns(uint) {
+        vote1Threshold = _threshold;
+        return vote1Threshold;
+    }
+    function updateVote2Threshold(uint _threshold) public validatorOnly returns(uint) {
+        vote2Threshold = _threshold;
+        return vote2Threshold;
+    }
+
+    // create a new sblock
     function submitMerkleRoot(
         bytes32 _merkleRoot,
         bytes32 _ipfsAddr,
@@ -87,16 +100,11 @@ contract BlockRegistry{
         bytes32 _lotteryIpfs,
         uint _minSuccessRate,
         bytes32 _successRateDB,
-        bytes32 _finalListIpfs
+        bytes32 _finalListIpfs,
+        uint _lotteryWinRange
     ) public validatorOnly returns (bool) {
-        // In other words, this function generate a new sblock.
-        // * block.number at this point is end of this sblock
-        // * block.number+1 is begin of next sblock
-        // ToDo
-        //   * (?) add a function to change opRound to 0 to (temporary) disable the round (or add a bool to do that?).
-        //     - opRound: a opRound contains `vote phase` and `claim-and-vote phase`, 
-
-        // comment some "require" for test purpose
+        // Note about `opRound`: a `opRound` contains a `vote phase` and a `claim-and-vote phase`, 
+        // comment some "require"s for test purpose
         // require(block.timestamp >= blockHistory[nowSblockNo] + sblockTimeStep, 'too soon');
         require(block.timestamp >= blockHistory[nowSblockNo].timestamp + 2 minutes);  // 2 min is for test purpose, should be 1 hour(?)
         require(block.number >= blockHistory[nowSblockNo].blockHeight + 5);  // 5 is for test purpose, should be ?
@@ -106,46 +114,50 @@ contract BlockRegistry{
         // require: ...
         require(_minSuccessRate >= 0 && _minSuccessRate < 100);
 
-        // determine which phase of a OpRound: genesis round, lottery, finalist, or regular (nothing happened) sblock
+        // determine which phase of a OpRound: genesis round, lottery, lottery-reveal, finalist, or regular (nothing happened) sblock
         // note that two kind of votes use same voteCount in smart contract
-        if (opRound == 0 && articleCount + _uniqArticleCount >= 100 ) {
-            // genesis round: 100 is a manually determined threshold
+        if (opRound == 0 && articleCount + _uniqArticleCount >= 100) {  // genesis
             require(_lotteryIpfs == '0x0' && _minSuccessRate == 0 && _finalListIpfs == '0x0' && _successRateDB == '0x0');
             roundVote1Count += _vote1Count; roundVote2Count += _vote2Count; articleCount += _uniqArticleCount;
             blockHistory[nowSblockNo] = blockStat(
-                block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
+                msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
                 0, '0x0', 0, '0x0', '0x0'
             );
             opRound += 1;  // i.e., this if-statement exec only once
-        } else if (roundVote1Count + _vote1Count >= 500 && opRound != 0 && latestLotterySblock < nowSblockNo) {
-            // lottery; 500 is manully determined; the vote here is `vote1`
+        } else if (roundVote1Count + _vote1Count >= vote1Threshold && opRound != 0 && latestLotterySblock < nowSblockNo) {  // lottery
             require(_finalListIpfs == '0x0' && _successRateDB == '0x0');
-            latestLotterySblock = nowSblockNo;
-            uint winNumber = uint(keccak256(abi.encodePacked(_merkleRoot, block.number)));  // need to sync this eq. with calcWinningNumber()
+            // check: this winNumber equal to result of calcWinningNumber()
+            uint winNumber = uint(keccak256(abi.encodePacked(_merkleRoot, blockhash(block.number-1))));
             blockHistory[nowSblockNo] = blockStat(
-                block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
+                msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
                 winNumber, _lotteryIpfs, _minSuccessRate, '0x0', '0x0'
             );
+            // record something so that in future one can check if a certain address/tx win this round of game?
             roundVote1Count = 0;
             roundVote2Count = 0;
             articleCount = 0;
-        } else if (roundVote2Count + _vote2Count >= 500 && opRound != 0 && latestLotterySblock > nowSblockNo) {
-            // finalist
+            latestLotterySblock = nowSblockNo;
+            lotteryWinRange = 0;  // reset previous value, will set a value later in `lottery-reveal`
+        } else if (roundVote2Count + _vote2Count >= vote2Threshold && opRound != 0 && latestLotterySblock > nowSblockNo) { // finalist
             require(_lotteryIpfs == '0x0' && _minSuccessRate == 0);
             roundVote1Count += _vote1Count; articleCount += _uniqArticleCount;
             blockHistory[nowSblockNo] = blockStat(
-                block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
+                msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
                 0, '0x0', 0, _successRateDB, _finalListIpfs
             );
             opRound += 1;
             roundVote2Count = 0;
+            // latestLotterySblock = 0; lotteryWinRange = 0;  // also reset these values?
         } else {  // regular sblock, only accumulate votes
             require(_lotteryIpfs == '0x0' && _minSuccessRate == 0 && _finalListIpfs == '0x0' && _successRateDB == '0x0');
             roundVote1Count += _vote1Count; roundVote2Count += _vote2Count; articleCount += _uniqArticleCount;
             blockHistory[nowSblockNo] = blockStat(
-                block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
+                msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
                 0, '0x0', 0, '0x0', '0x0'
             );
+            if (latestLotterySblock == nowSblockNo - 1 &&  _lotteryWinRange > 0 && lotteryWinRange == 0) {  // lottery-reveal
+                lotteryWinRange = _lotteryWinRange;
+            }
         }
         nowSblockNo += 1;
 
@@ -153,21 +165,25 @@ contract BlockRegistry{
     }
 
     // Lottery related
-    function calcLatestWinningNumber() public view returns(uint) {
-        require(nowSblockNo > 1);
-        return calcWinningNumber(nowSblockNo-1);
-    }
+    // function calcLatestWinningNumber() public view returns(uint) {
+    //     require(nowSblockNo > 1);
+    //     return calcWinningNumber(nowSblockNo-1, 0x0);
+    // }
 
-    function calcWinningNumber(uint _sblockNo) public view returns(uint) {
-        require(_sblockNo < nowSblockNo);
-        require(block.number > blockHistory[_sblockNo].blockHeight);  // if equal, then there's no blockhash(_sblockNo)
+    function calcWinningNumber(uint _sblockNo, bytes32 _bhash) public view returns(uint) {
+        require(_sblockNo > 0 && _sblockNo < nowSblockNo);
         require(blockHistory[_sblockNo].merkleRoot != 0x0);
+        require(block.number > blockHistory[_sblockNo].blockHeight);  // if equal, then there's no blockhash(_sblockNo)
         // require: ...
         // *merkle root of K+y*, as well as *defense of block K+y* and latest *Eth block hash at the time of block K+y committed*
-        return uint(keccak256(abi.encodePacked(
-            blockHistory[_sblockNo].merkleRoot,
-            blockHistory[_sblockNo].blockHeight  // blockhash() of this uint could be `0x0` if sblock too long (>256 main chain block)
-        )));
+        if (_bhash == 0x0) {
+            require(block.number - blockHistory[_sblockNo].blockHeight < 256);  // if >256, then the blockhash is not on chain
+            _bhash = blockhash(blockHistory[_sblockNo].blockHeight);
+        }
+        return uint(keccak256(abi.encodePacked(blockHistory[_sblockNo].merkleRoot, _bhash)));
+    }
+
+    function isWinningAddress() public view returns() {
     }
 
     function txExist(bytes32[] memory proof, bool[] memory isLeft, bytes32 txHash, uint _sblockNo) public view returns (bool){
