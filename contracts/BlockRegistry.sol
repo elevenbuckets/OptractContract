@@ -146,7 +146,7 @@ contract BlockRegistry{
             );
             v2EndTime = block.timestamp;  // although no 'claiming', still record a time
             _toNextOpRound();
-        } else if (isLotteryTime(roundVote1Count+_vote1Count)) {  // lottery
+        } else if (isEnoughV1(roundVote1Count+_vote1Count && opRound != 0 && lotterySblockNo[opRound] == 0)) {  // lottery
             require(_finalListIpfs == '0x0' && _successRateDB == '0x0' && _lotteryIpfs != 0x0);
             // check: this winNumber equal to result of calcWinNumber()
             uint winNumber = uint(keccak256(abi.encodePacked(_merkleRoot, blockhash(block.number-1))));
@@ -160,7 +160,7 @@ contract BlockRegistry{
             roundVote1Count = 0;  // need to reset otherwise next call will fall into this if-statement again
             roundVote2Count = 0;  // should be 0 already but reset anyway
             articleCount = 0;
-        } else if (block.timestamp - v2EndTime > 12 hours) { // too long! This OpRound-v1 is a "no-draw-round"! Proceed to next OpRound
+        } else if (block.timestamp - v2EndTime > 12 hours) {  // too long! This OpRound-v1 is a "no-draw-round"! Proceed to next OpRound
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
                 0, _lotteryIpfs, _minSuccessRate, '0x0', '0x0'
@@ -170,7 +170,7 @@ contract BlockRegistry{
             vote1Threshold = _decreaseThreshold(vote1Threshold);
             lotterySblockNo[opRound] = nowSblockNo;  // or don't do this?
             _toNextOpRound();
-        } else if (roundVote2Count + _vote2Count >= vote2Threshold && opRound != 0 && v1EndTime > blockHistory[nowSblockNo].timestamp) { // finalist
+        } else if (isEnoughV2(vote2Count) && opRound != 0 && v1EndTime > blockHistory[nowSblockNo].timestamp) { // finalist
             require(_lotteryIpfs == '0x0' && _minSuccessRate == 0);
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
@@ -204,13 +204,24 @@ contract BlockRegistry{
         return true;
     }
 
-    function isLotteryTime(uint v1Count) public view returns (bool) {
-        require(opRound != 0 && lotterySblockNo[opRound] == 0);  // more criteria?
+    function isEnoughV1(uint v1Count) public view returns (bool) {
         uint activeMemberCount = MemberShipInterface(memberContractAddr).getActiveMemberCount();
         require(activeMemberCount >= 3);  // '3' is num of coreManagers, or use 1? 100?
         uint vote1Rate = (100 * v1Count) / activeMemberCount;
         assert(vote1Rate <= 100);
         if (vote1Rate > vote1Threshold) {
+            return true;
+        }
+    }
+
+    function isEnoughV2(uint v2Count) public view returns (bool) {
+        uint activeMemberCount = MemberShipInterface(memberContractAddr).getActiveMemberCount();
+        require(activeMemberCount >= 3);  // '3' is num of coreManagers, or use 1? 100?
+        // vote2Rate already select 25% of people from 50% of member, i.e., 1/8 of total members
+        // Here try to keep vote2Rate roughly in the range of 0 and 100, so multiply 8 back
+        // Note that the '1/8' factor is uncertain, so 'vote2Rate' could be larger than 100
+        uint vote2Rate = (8 * 100 * v2Count) / activeMemberCount;
+        if (vote2Rate > vote2Threshold) {
             return true;
         }
     }
