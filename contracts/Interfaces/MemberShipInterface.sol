@@ -10,12 +10,15 @@ interface MemberShipInterface {
     function addPenalty(uint _id, uint _penalty) external returns (uint);
     function readNotes(uint _id) external view returns (string memory);
     function addNotes(uint _id, string calldata _notes) external;
+    function toggleSpeicalMember(address _addr) external;  // for dev only
     function addrIsMember(address _addr) external view returns (bool);
     function addrIsActiveMember(address _addr) external view returns (bool);
     function idIsMember(uint _id) external view returns (bool);
     function idIsActiveMember(uint _id) external view returns (bool);
+    function idExpireTime(uint _id) external view returns (uint);
     function addrToId(address _addr) external view returns (uint);
     function getMemberInfo(address _addr) external view returns (uint, bytes32, uint, uint);
+    function updateActiveMembers() external returns (uint);
     function pause() external;
     function unpause() external;
     function updateManager(address _addr, uint _id) external;

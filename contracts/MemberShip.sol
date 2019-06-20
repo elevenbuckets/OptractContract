@@ -2,22 +2,23 @@ pragma solidity ^0.5.2;
 
 import "./Interfaces/QOTInterface.sol";
 
+// TODO: check integer overflow
 
 contract MemberShip {
     address public owner;
     address[3] public coreManagers;
-    address[5] public managers;
+    address[8] public managers;
     address public QOTAddr;
     uint public totalId;  // id 0 is not used and will start from 1
     uint public fee = 0.01 ether;
-    // uint public memberPeriod = 40000;  // 40000 blocks ~ a week in rinkeby, for test only
-    // todo: make it at some level bind with real time; probably make it adjustable for debugging
-    uint public memberPeriod = 160000;  // 40000 blocks ~ a week in rinkeby, for test only
+    // uint public memberPeriod = 160000;  // 40000 blocks ~ a week in rinkeby, for test only
+    uint public memberPeriod = 30 days;
     bool public paused;
+    uint public activeMemberCount;  // need to call function to update this value
 
     struct MemberInfo {
         address addr;
-        uint since;  // beginning blockNo of previous membership
+        uint since;  // beginning block.timestamp of previous membership
         uint penalty;  // the membership is valid until: since + memberPeriod - penalty;
         bytes32 kycid;  // know your customer id, leave it for future
         string notes;
@@ -26,6 +27,9 @@ contract MemberShip {
     mapping (uint => MemberInfo) internal memberDB;  // id to MemberInfo
     mapping (address => uint) internal addressToId;  // address to membership
 
+    mapping (address => bool) internal specialMember;
+    uint public specialMemberBonus = 10000 days;  // value set in constructor
+
     mapping (address => bool) public appWhitelist;
 
     constructor(address _QOTAddr) public {
@@ -33,13 +37,16 @@ contract MemberShip {
         coreManagers = [0xB440ea2780614b3c6a00e512f432785E7dfAFA3E,
                         0x4AD56641C569C91C64C28a904cda50AE5326Da41,
                         0xaF7400787c54422Be8B44154B1273661f1259CcD];
-        managers = [address(0), address(0), address(0), address(0), address(0)];
+        managers = [address(0), address(0), address(0), address(0), address(0), address(0), address(0), address(0)];
         QOTAddr = _QOTAddr;
 
-        _assignMembership(coreManagers[0]);
-        _assignMembership(coreManagers[1]);
-        _assignMembership(coreManagers[2]);
+        for (uint8 i=0; i<3; i++){
+            _assignMembership(coreManagers[i]);
+            specialMember[coreManagers[i]] = true;
+            appWhitelist[coreManagers[i]] = true;
+        }
         assert(totalId == 3);
+        // activeMemberCount = 3;  // set an initial value
     }
 
     modifier ownerOnly() {
@@ -48,14 +55,17 @@ contract MemberShip {
     }
 
     modifier coreManagerOnly() {
+        require(msg.sender != address(0));
         require(msg.sender == coreManagers[0] || msg.sender == coreManagers[1] || msg.sender == coreManagers[2]);
         _;
     }
 
     modifier managerOnly() {
+        require(msg.sender != address(0));
         require(msg.sender == coreManagers[0] || msg.sender == coreManagers[1] || msg.sender == coreManagers[2] ||
                 msg.sender == managers[0] || msg.sender == managers[1] || msg.sender == managers[2] ||
-                msg.sender == managers[3] || msg.sender == managers[4]);
+                msg.sender == managers[3] || msg.sender == managers[4] || msg.sender == managers[5] ||
+                msg.sender == managers[6] || msg.sender == managers[7]);
         _;
     }
 
@@ -74,8 +84,7 @@ contract MemberShip {
         require(msg.sender != address(0));
         uint _id = addressToId[msg.sender];
         require(_id != 0);
-        require(memberDB[_id].since + memberPeriod - memberDB[_id].penalty > block.number);
-        // is it possible that penalty >= since or block.number?
+        require(idExpireTime(_id) > block.timestamp);
         _;
     }
 
@@ -99,15 +108,19 @@ contract MemberShip {
     function _assignMembership(address _addr) internal {
         totalId += 1;  // make it start from 1
         addressToId[_addr] = totalId;
-        memberDB[totalId] = MemberInfo(_addr, block.number, 0, bytes32(0), "");
+        memberDB[totalId] = MemberInfo(_addr, block.timestamp, 0, bytes32(0), "");
     }
 
     function renewMembership() public payable feePaid whenNotPaused returns (uint) {
         uint _id = addressToId[msg.sender];
         require(msg.sender != address(0) && addressToId[msg.sender] != 0 && memberDB[_id].addr == msg.sender);
-        require(block.number > memberDB[_id].since + memberPeriod - 10000);  // 10000 rinkeby blocks ~1.7 days, which is a magic number
-        memberDB[_id].since = block.number;
-        return block.number;
+        uint _bonus;
+        if (specialMember[memberDB[_id].addr]) {
+            _bonus = specialMemberBonus;
+        }
+        require(block.timestamp > memberDB[_id].since + memberPeriod + _bonus - 7 days);
+        memberDB[_id].since = block.timestamp;
+        return block.timestamp;
     }
 
     function assginKYCid(uint _id, bytes32 _kycid) external managerOnly returns (bool) {
@@ -130,14 +143,16 @@ contract MemberShip {
     function addPenalty(uint _id, uint _penalty) external returns (uint) {
         require(appWhitelist[msg.sender] == true);  // the msg.sender (usually a contract) is in appWhitelist
         require(memberDB[_id].since > 0);  // is a member
-        require(_penalty < memberPeriod);  // prevent too much penalty
+        // require(_penalty < memberPeriod);  // prevent too much penalty
 
-        // extreme case which is unlike to happen
-        if (memberDB[_id].penalty + _penalty > block.number) {
-            memberDB[_id].penalty = block.number - 1;  // if 0 then not a member
-        } else {
+        // In case of really large _penalty
+        uint expireTime = idExpireTime(_id);
+        if (expireTime > _penalty) {
             memberDB[_id].penalty += _penalty;
+        } else {
+            memberDB[_id].penalty = expireTime;
         }
+
         return memberDB[_id].penalty;
     }
 
@@ -149,6 +164,11 @@ contract MemberShip {
     function addNotes(uint _id, string calldata _notes) external managerOnly {
         require(memberDB[_id].since > 0);
         memberDB[_id].notes = _notes;
+    }
+
+    function toggleSpeicalMember(address _addr) public coreManagerOnly {  // for test only; should remove in future
+        require(addrIsMember(_addr));
+        specialMember[_addr] = !specialMember[_addr];
     }
 
     // some query functions
@@ -171,12 +191,19 @@ contract MemberShip {
     }
 
     function idIsActiveMember(uint _id) public view returns (bool) {
-        if ( _id == 0 || memberDB[_id].since == 0) {
-            return false;
-        } else if (memberDB[_id].since + memberPeriod - memberDB[_id].penalty > block.number) {
+        require (_id > 0 || memberDB[_id].since > 0);
+        if (idExpireTime(_id) > block.timestamp) {
             return true;  // not yet expire
         } else {
             return false;
+        }
+    }
+
+    function idExpireTime(uint _id) public view returns (uint) {
+        if (specialMember[memberDB[_id].addr]) {
+            return memberDB[_id].since + memberPeriod - memberDB[_id].penalty + specialMemberBonus;
+        } else {
+            return memberDB[_id].since + memberPeriod - memberDB[_id].penalty;
         }
     }
 
@@ -198,6 +225,21 @@ contract MemberShip {
             }
         }
         return (status, bytes32(_id), memberDB[_id].since, memberDB[_id].penalty);
+    }
+
+    function updateActiveMembers() public managerOnly returns (uint){
+        activeMemberCount = _countActiveMembers();
+        return(activeMemberCount);
+    }
+
+    function _countActiveMembers() internal view returns (uint) {
+        uint _count = 0;
+        for (uint i = 0; i < totalId; i++) {
+            if (idExpireTime(i) > block.timestamp) {
+                _count += 1;
+            }
+        }
+        return _count;
     }
 
     // upgradable
