@@ -9,8 +9,12 @@ module.exports = function(deployer) {
     deployer.link(SafeMath, [StandardToken, BlockRegistry, QOT]);
     deployer.deploy(StandardToken);
     return deployer.deploy(QOT).then( () => {
-        return deployer.deploy(MemberShip, QOT.address).then ( () => {
-            return deployer.deploy(BlockRegistry, MemberShip.address);
+        return deployer.deploy(MemberShip, QOT.address).then ( (iMemberShip) => {
+            return deployer.deploy(BlockRegistry, MemberShip.address).then( ()=>{
+                iMemberShip.addWhitelistApps(BlockRegistry.address, (err,r) => {
+                    if (err) { console.trace(err); throw "bad2" };
+                })
+            })
         })
     })
 }

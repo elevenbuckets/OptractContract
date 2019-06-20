@@ -46,7 +46,7 @@ contract MemberShip {
             appWhitelist[coreManagers[i]] = true;
         }
         assert(totalId == 3);
-        // activeMemberCount = 3;  // set an initial value
+        activeMemberCount = 3;  // manually set an initial value
     }
 
     modifier ownerOnly() {
@@ -85,6 +85,11 @@ contract MemberShip {
         uint _id = addressToId[msg.sender];
         require(_id != 0);
         require(idExpireTime(_id) > block.timestamp);
+        _;
+    }
+
+    modifier isAppWhitelist() {
+        require(appWhitelist[msg.sender]);
         _;
     }
 
@@ -227,7 +232,11 @@ contract MemberShip {
         return (status, bytes32(_id), memberDB[_id].since, memberDB[_id].penalty);
     }
 
-    function updateActiveMembers() public managerOnly returns (uint){
+    function getActiveMemberCount() public view returns (uint){
+        return(activeMemberCount);
+    }
+
+    function updateActiveMembers() public isAppWhitelist returns (uint){
         activeMemberCount = _countActiveMembers();
         return(activeMemberCount);
     }
