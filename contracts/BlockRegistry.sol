@@ -15,12 +15,14 @@ contract BlockRegistry{
     uint public sblockTimeStep = 30 minutes;  // it's a minimum timestep
     bool public opRoundStatus = true;  // need `true` for 1st round; or simply use "pause/unpause"?
     uint public opRound;
-    uint public latestLotterySblock;
     uint public articleCount;
+    // variables with `v1` or `vote1`: lottery; with `v2` or `vote2`: finalist
     uint public roundVote1Count;
     uint public roundVote2Count;
     uint public vote1Threshold = 40;  // between 5 and 95, step 5
     uint public vote2Threshold = 40;  // between 5 and 95, step 5
+    uint public v1EndTime;
+    uint public v2EndTime;
 
     struct blockStat{
         address validator;
@@ -83,15 +85,28 @@ contract BlockRegistry{
         return opRound;
     }
 
-    function updateVote1Threshold(uint _threshold) public validatorOnly returns(uint) {
-        require(_threshold > 0 && _threshold < 100 && _threshold % 5 == 0);
-        vote1Threshold = _threshold;
-        return vote1Threshold;
+    function _increaseThreshold(uint _x) internal pure returns(uint) {
+        if (_x <= 90) {
+            return _x + 5;
+        } else {
+            return 95;
+        }
     }
-    function updateVote2Threshold(uint _threshold) public validatorOnly returns(uint) {
-        require(_threshold > 0 && _threshold < 100 && _threshold % 5 == 0);
-        vote2Threshold = _threshold;
-        return vote2Threshold;
+
+    function _decreaseThreshold(uint _x) internal pure returns(uint) {
+        if (_x >= 10) {
+            return _x - 5;
+        } else {
+            return 5;
+        }
+    }
+
+    function _toNextOpRound() internal {
+        roundVote1Count = 0;
+        roundVote2Count = 0;
+        articleCount = 0;
+        MemberShipInterface(memberContractAddr).updateActiveMembers();
+        opRound += 1;
     }
 
     // create a new sblock
@@ -118,18 +133,19 @@ contract BlockRegistry{
         require(_minSuccessRate >= 0 && _minSuccessRate < 100);
 
 
-        MemberShipInterface(memberContractAddr).updateActiveMembers();  // or do it in finalist-stage of OpRound?
-
-        // determine which phase of a opRound: genesis round, lottery, finalist, or regular (nothing happened) sblock
-        // note that two kind of votes use same voteCount in smart contract
-        if (opRound == 0 && articleCount + _uniqArticleCount >= 100) {  // genesis
+        // determine which phase of a opRound: genesis round, lottery, lottery-NDR, finalist, finalisr-NDR, or regular (nothing happened) sblock
+        // note:
+        //   * NDR = no-draw-round
+        //   * apart from genesis sblock, the articleCount is not used.
+        // TODO: how about add a variable to record current "phase" of a OpRound?
+        if (opRound == 0 && articleCount + _uniqArticleCount >= 20) {  // genesis; set 20 for test purpose
             require(_lotteryIpfs == '0x0' && _minSuccessRate == 0 && _finalListIpfs == '0x0' && _successRateDB == '0x0');
-            roundVote1Count += _vote1Count; roundVote2Count += _vote2Count; articleCount += _uniqArticleCount;
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
                 0, '0x0', 0, '0x0', '0x0'
             );
-            opRound += 1;  // i.e., this if-statement exec only once
+            v2EndTime = block.timestamp;  // although no 'claiming', still record a time
+            _toNextOpRound();
         } else if (isLotteryTime(roundVote1Count+_vote1Count)) {  // lottery
             require(_finalListIpfs == '0x0' && _successRateDB == '0x0' && _lotteryIpfs != 0x0);
             // check: this winNumber equal to result of calcWinNumber()
@@ -138,23 +154,45 @@ contract BlockRegistry{
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
                 winNumber, _lotteryIpfs, _minSuccessRate, '0x0', '0x0'
             );
-            // record something so that in future one can check if a certain address/tx win this round of game?
-            roundVote1Count = 0; roundVote2Count = 0; articleCount = 0;
-            latestLotterySblock = nowSblockNo;
+            v1EndTime = block.timestamp;
+            vote1Threshold = _increaseThreshold(vote1Threshold);
             lotterySblockNo[opRound] = nowSblockNo;
-        } else if (roundVote2Count + _vote2Count >= vote2Threshold && opRound != 0 && latestLotterySblock > nowSblockNo) { // finalist
+            roundVote1Count = 0;  // need to reset otherwise next call will fall into this if-statement again
+            roundVote2Count = 0;  // should be 0 already but reset anyway
+            articleCount = 0;
+        } else if (block.timestamp - v2EndTime > 12 hours) { // too long! This OpRound-v1 is a "no-draw-round"! Proceed to next OpRound
+            blockHistory[nowSblockNo] = blockStat(
+                msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
+                0, _lotteryIpfs, _minSuccessRate, '0x0', '0x0'
+            );
+            v1EndTime = block.timestamp-1;  // or don't update? BTW, subtract by 1 to make sure v2EndTime > v1Endtime (or no need?)
+            v2EndTime = block.timestamp;  // in case next submit() fall into this if-statement again
+            vote1Threshold = _decreaseThreshold(vote1Threshold);
+            lotterySblockNo[opRound] = nowSblockNo;  // or don't do this?
+            _toNextOpRound();
+        } else if (roundVote2Count + _vote2Count >= vote2Threshold && opRound != 0 && v1EndTime > blockHistory[nowSblockNo].timestamp) { // finalist
             require(_lotteryIpfs == '0x0' && _minSuccessRate == 0);
-            roundVote1Count += _vote1Count; articleCount += _uniqArticleCount;
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
                 0, '0x0', 0, _successRateDB, _finalListIpfs
             );
-            opRound += 1;
-            roundVote1Count = 0; roundVote2Count = 0; articleCount = 0;
-            // latestLotterySblock = 0;  // also reset? 
+            v2EndTime = block.timestamp;
+            vote2Threshold = _increaseThreshold(vote2Threshold);
+            _toNextOpRound();
+        } else if (block.timestamp - v1EndTime > 12 hours) {  // too long! End this Opround-v2 and proceed to next OpRound
+            require(_lotteryIpfs == '0x0' && _minSuccessRate == 0);
+            blockHistory[nowSblockNo] = blockStat(
+                msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
+                0, '0x0', 0, _successRateDB, _finalListIpfs
+            );
+            vote2Threshold = _decreaseThreshold(vote2Threshold);
+            v2EndTime = block.timestamp;
+            _toNextOpRound();
         } else {  // regular sblock, only accumulate votes
             require(_lotteryIpfs == '0x0' && _minSuccessRate == 0 && _finalListIpfs == '0x0' && _successRateDB == '0x0');
-            roundVote1Count += _vote1Count; roundVote2Count += _vote2Count; articleCount += _uniqArticleCount;
+            roundVote1Count += _vote1Count;
+            roundVote2Count += _vote2Count;
+            articleCount += _uniqArticleCount;  // right now, this is only used in genesis
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
                 0, '0x0', 0, '0x0', '0x0'
@@ -167,7 +205,7 @@ contract BlockRegistry{
     }
 
     function isLotteryTime(uint v1Count) public view returns (bool) {
-        require(opRound != 0 && latestLotterySblock < nowSblockNo && lotterySblockNo[opRound] == 0);
+        require(opRound != 0 && lotterySblockNo[opRound] == 0);  // more criteria?
         uint activeMemberCount = MemberShipInterface(memberContractAddr).getActiveMemberCount();
         require(activeMemberCount >= 3);  // '3' is num of coreManagers, or use 1? 100?
         uint vote1Rate = (100 * v1Count) / activeMemberCount;
