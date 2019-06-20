@@ -23,6 +23,7 @@ contract BlockRegistry{
     uint public vote2Threshold = 40;  // between 5 and 95, step 5
     uint public v1EndTime;
     uint public v2EndTime;
+    bool public atV1;
 
     struct blockStat{
         address validator;
@@ -145,8 +146,10 @@ contract BlockRegistry{
                 0, '0x0', 0, '0x0', '0x0'
             );
             v2EndTime = block.timestamp;  // although no 'claiming', still record a time
+            atV1 = true;
             _toNextOpRound();
-        } else if (isEnoughV1(roundVote1Count+_vote1Count) && opRound != 0 && lotterySblockNo[opRound] == 0) {  // lottery
+        } else if (atV1 && isEnoughV1(roundVote1Count+_vote1Count)) {  // lottery
+            require(opRound != 0 && lotterySblockNo[opRound] == 0);
             require(_finalListIpfs == '0x0' && _successRateDB == '0x0' && _lotteryIpfs != 0x0);
             // check: this winNumber equal to result of calcWinNumber()
             uint winNumber = uint(keccak256(abi.encodePacked(_merkleRoot, blockhash(block.number-1))));
@@ -160,7 +163,8 @@ contract BlockRegistry{
             roundVote1Count = 0;  // need to reset otherwise next call will fall into this if-statement again
             roundVote2Count = 0;  // should be 0 already but reset anyway
             articleCount = 0;
-        } else if (block.timestamp - v2EndTime > 12 hours) {  // too long! This OpRound-v1 is a "no-draw-round"! Proceed to next OpRound
+            atV1 = false;
+        } else if (atV1 && (block.timestamp - v2EndTime > 12 hours)) {  // too long! This OpRound-v1 is a "no-draw-round"! Proceed to next OpRound
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
                 0, _lotteryIpfs, _minSuccessRate, '0x0', '0x0'
@@ -169,8 +173,10 @@ contract BlockRegistry{
             v2EndTime = block.timestamp;  // in case next submit() fall into this if-statement again
             vote1Threshold = _decreaseThreshold(vote1Threshold);
             lotterySblockNo[opRound] = nowSblockNo;  // or don't do this?
+            atV1 = true;
             _toNextOpRound();
-        } else if (isEnoughV2(roundVote2Count+_vote2Count) && opRound != 0 && v1EndTime > blockHistory[nowSblockNo].timestamp) { // finalist
+        } else if (atV1 == false && isEnoughV2(roundVote2Count+_vote2Count)) { // finalist
+            require(opRound != 0 && v1EndTime > blockHistory[nowSblockNo].timestamp);
             require(_lotteryIpfs == '0x0' && _minSuccessRate == 0);
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
@@ -178,8 +184,9 @@ contract BlockRegistry{
             );
             v2EndTime = block.timestamp;
             vote2Threshold = _increaseThreshold(vote2Threshold);
+            atV1 = true;
             _toNextOpRound();
-        } else if (block.timestamp - v1EndTime > 12 hours) {  // too long! End this Opround-v2 and proceed to next OpRound
+        } else if (atV1 == false && (block.timestamp - v1EndTime > 12 hours)) {  // too long! End this Opround-v2 and proceed to next OpRound
             require(_lotteryIpfs == '0x0' && _minSuccessRate == 0);
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
@@ -187,6 +194,7 @@ contract BlockRegistry{
             );
             vote2Threshold = _decreaseThreshold(vote2Threshold);
             v2EndTime = block.timestamp;
+            atV1 = true;
             _toNextOpRound();
         } else {  // regular sblock, only accumulate votes
             require(_lotteryIpfs == '0x0' && _minSuccessRate == 0 && _finalListIpfs == '0x0' && _successRateDB == '0x0');
