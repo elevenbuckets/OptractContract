@@ -146,7 +146,7 @@ contract BlockRegistry{
             );
             v2EndTime = block.timestamp;  // although no 'claiming', still record a time
             _toNextOpRound();
-        } else if (isEnoughV1(roundVote1Count+_vote1Count && opRound != 0 && lotterySblockNo[opRound] == 0)) {  // lottery
+        } else if (isEnoughV1(roundVote1Count+_vote1Count) && opRound != 0 && lotterySblockNo[opRound] == 0) {  // lottery
             require(_finalListIpfs == '0x0' && _successRateDB == '0x0' && _lotteryIpfs != 0x0);
             // check: this winNumber equal to result of calcWinNumber()
             uint winNumber = uint(keccak256(abi.encodePacked(_merkleRoot, blockhash(block.number-1))));
@@ -170,7 +170,7 @@ contract BlockRegistry{
             vote1Threshold = _decreaseThreshold(vote1Threshold);
             lotterySblockNo[opRound] = nowSblockNo;  // or don't do this?
             _toNextOpRound();
-        } else if (isEnoughV2(vote2Count) && opRound != 0 && v1EndTime > blockHistory[nowSblockNo].timestamp) { // finalist
+        } else if (isEnoughV2(roundVote2Count+_vote2Count) && opRound != 0 && v1EndTime > blockHistory[nowSblockNo].timestamp) { // finalist
             require(_lotteryIpfs == '0x0' && _minSuccessRate == 0);
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
