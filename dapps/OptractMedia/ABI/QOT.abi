@@ -144,6 +144,26 @@
     "constant": true,
     "inputs": [
       {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "mining",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xd7dd41f2"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
         "name": "_owner",
         "type": "address"
       },
@@ -163,26 +183,6 @@
     "stateMutability": "view",
     "type": "function",
     "signature": "0xdd62ed3e"
-  },
-  {
-    "constant": true,
-    "inputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "miners",
-    "outputs": [
-      {
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function",
-    "signature": "0xe0d152af"
   },
   {
     "inputs": [],
@@ -271,7 +271,7 @@
     "constant": false,
     "inputs": [
       {
-        "name": "_miner",
+        "name": "_mining",
         "type": "address"
       },
       {
@@ -310,6 +310,21 @@
     "stateMutability": "view",
     "type": "function",
     "signature": "0x46604551"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "isMining",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x19a74ab3"
   },
   {
     "constant": false,

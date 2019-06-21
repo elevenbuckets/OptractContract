@@ -2,6 +2,21 @@
   {
     "constant": true,
     "inputs": [],
+    "name": "specialMemberBonus",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x05d104f2"
+  },
+  {
+    "constant": true,
+    "inputs": [],
     "name": "QOTAddr",
     "outputs": [
       {
@@ -48,6 +63,21 @@
     "stateMutability": "view",
     "type": "function",
     "signature": "0x5c975abb"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "activeMemberCount",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x5fb6c6ed"
   },
   {
     "constant": true,
@@ -319,6 +349,21 @@
     "signature": "0xd9ed28b7"
   },
   {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_addr",
+        "type": "address"
+      }
+    ],
+    "name": "toggleSpeicalMember",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0x3c58aa94"
+  },
+  {
     "constant": true,
     "inputs": [
       {
@@ -402,6 +447,26 @@
     "constant": true,
     "inputs": [
       {
+        "name": "_id",
+        "type": "uint256"
+      }
+    ],
+    "name": "idExpireTime",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x3d9d5a7a"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
         "name": "_addr",
         "type": "address"
       }
@@ -449,6 +514,36 @@
     "stateMutability": "view",
     "type": "function",
     "signature": "0x5f1231ea"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "getActiveMemberCount",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x22faa41f"
+  },
+  {
+    "constant": false,
+    "inputs": [],
+    "name": "updateActiveMembers",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0xc5bc3861"
   },
   {
     "constant": false,
