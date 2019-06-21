@@ -25,6 +25,8 @@ contract BlockRegistry{
     uint public v2EndTime;
     bool public atV1;
 
+    uint public maxVoteTime = 120 minutes;  // an Opround is consist of 2*maxVoteTime; use smaller values for debug
+
     struct blockStat{
         address validator;
         uint blockHeight;  // block.number while submission
@@ -86,6 +88,12 @@ contract BlockRegistry{
         return opRound;
     }
 
+    function updateMaxVoteTime(uint _seconds) public validatorOnly {
+        require(_seconds > 180 && _seconds < 86400);  // restrict to a range
+        maxVoteTime = _seconds;
+    }
+
+    // some internal functions
     function _increaseThreshold(uint _x) internal pure returns(uint) {
         if (_x <= 90) {
             return _x + 5;
@@ -138,7 +146,6 @@ contract BlockRegistry{
         // a sblock in a opRound cound be of type: genesis, lottery, lottery-NDR, finalist, finalist-NDR, or regular
         // (NDR = no-draw-round)
         if (opRound == 0 && articleCount + _uniqArticleCount >= 20) {  // genesis; set 20 for test purpose
-            require(_lotteryIpfs == 0x0 && _minSuccessRate == 0 && _finalListIpfs == 0x0 && _successRateDB == 0x0);
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
                 0, 0x0, 0, 0x0, 0x0
@@ -148,7 +155,7 @@ contract BlockRegistry{
             _toNextOpRound();
         } else if (opRound != 0 && atV1 && isEnoughV1(roundVote1Count+_vote1Count)) {  // lottery
             require(lotterySblockNo[opRound] == 0);
-            require(_lotteryIpfs != 0x0 && _minSuccessRate > 0 && _successRateDB == 0x0 && _finalListIpfs == 0x0);
+            require(_lotteryIpfs != 0x0);
             // check: this winNumber equal to result of calcWinNumber()
             uint winNumber = uint(keccak256(abi.encodePacked(_merkleRoot, blockhash(block.number-1))));
             blockHistory[nowSblockNo] = blockStat(
@@ -161,7 +168,7 @@ contract BlockRegistry{
             roundVote1Count = 0;  // need to reset otherwise next call will fall into this if-statement again
             roundVote2Count = 0;  // should be 0 already but reset anyway
             atV1 = false;
-        } else if (opRound != 0 && atV1 && (block.timestamp - v2EndTime > 12 hours)) {  // too long! This OpRound-v1 is a "no-draw-round"! Proceed to next OpRound
+        } else if (opRound != 0 && atV1 && (block.timestamp - v2EndTime > maxVoteTime)) {  // too long! This OpRound-v1 is a "no-draw-round"! Proceed to next OpRound
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
                 0, 0x0, 0, 0x0, 0x0
@@ -173,8 +180,7 @@ contract BlockRegistry{
             atV1 = true;  // end this OpRound-v1, proceed to next OpRound-v1
             _toNextOpRound();
         } else if (opRound != 0 && atV1 == false && isEnoughV2(roundVote2Count+_vote2Count)) { // finalist
-            // require(v1EndTime > blockHistory[nowSblockNo].timestamp);
-            require(_lotteryIpfs == 0x0 && _minSuccessRate == 0);
+            require(_successRateDB != 0x0 && _finalListIpfs != 0x0);
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
                 0, 0x0, 0, _successRateDB, _finalListIpfs
@@ -183,17 +189,16 @@ contract BlockRegistry{
             vote2Threshold = _increaseThreshold(vote2Threshold);
             atV1 = true;
             _toNextOpRound();
-        } else if (opRound != 0 && atV1 == false && (block.timestamp - v1EndTime > 12 hours)) {  // too long! End this Opround-v2 and proceed to next OpRound
+        } else if (opRound != 0 && atV1 == false && (block.timestamp - v1EndTime > maxVoteTime)) {  // too long! End this Opround-v2 and proceed to next OpRound
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
-                0, 0x0, 0, _successRateDB, _finalListIpfs
-            );
+                0, 0x0, 0, _successRateDB, 0x0
+            );  // should validator update new _successRateDB here?
             vote2Threshold = _decreaseThreshold(vote2Threshold);
             v2EndTime = block.timestamp;
             atV1 = true;
             _toNextOpRound();
         } else {  // regular sblock, only accumulate votes
-            require(_lotteryIpfs == 0x0 && _minSuccessRate == 0 && _successRateDB == 0x0 && _finalListIpfs == 0x0);
             roundVote1Count += _vote1Count;
             roundVote2Count += _vote2Count;
             articleCount += _uniqArticleCount;  // right now, this is only used in genesis
