@@ -4,6 +4,30 @@ module.exports =
 	{
 		return true;
 	},
+        BlockRegistry_isEnoughV1_sanity(addr, jobObj)
+	{
+		return true;
+	},
+        BlockRegistry_isEnoughV2_sanity(addr, jobObj)
+	{
+		return true;
+	},
+        BlockRegistry_calcWinNumber_sanity(addr, jobObj)
+	{
+		return true;
+	},
+        BlockRegistry_isWinningTicket_sanity(addr, jobObj)
+	{
+		return true;
+	},
+        BlockRegistry_txExist_sanity(addr, jobObj)
+	{
+		return true;
+	},
+        BlockRegistry_claimReward_sanity(addr, jobObj)
+	{
+		return true;
+	},
         BlockRegistry_merkleTreeValidator_sanity(addr, jobObj)
 	{
 		return true;
