@@ -58,7 +58,7 @@ contract BlockRegistry{
                        address(0), address(0), address(0), address(0), address(0),
                        address(0), address(0), address(0)];
         // prevTimeStamp = block.timestamp - sblockTimeStep;
-        blockHistory[0] = blockStat(msg.sender, block.number, '0x0', '0x0', block.timestamp, 0, 0, 0, 0, 0, '0x0', 0, '0x0', '0x0');
+        blockHistory[0] = blockStat(msg.sender, block.number, 0x0, 0x0, block.timestamp, 0, 0, 0, 0, 0, 0x0, 0, 0x0, 0x0);
         nowSblockNo = 1;
     }
 
@@ -122,88 +122,84 @@ contract BlockRegistry{
         bytes32 _successRateDB,
         bytes32 _finalListIpfs
     ) public validatorOnly returns (bool) {
-        // Note about `opRound`: a `opRound` contains a `vote phase` and a `claim-and-vote phase`, 
+        // Note: a `opRound` contains two parts: `(v1)vote` and `(v2)claim`,
+        //       (v2) may not happen if (1) takes more than 12 hours.
         // comment some "require"s for test purpose
         // require(block.timestamp >= blockHistory[nowSblockNo] + sblockTimeStep, 'too soon');
         require(block.timestamp >= blockHistory[nowSblockNo].timestamp + 2 minutes);  // 2 min is for test purpose, should be 1 hour(?)
         require(block.number >= blockHistory[nowSblockNo].blockHeight + 5);  // 5 is for test purpose, should be ?
-        require(blockHistory[nowSblockNo].merkleRoot != _merkleRoot && blockHistory[nowSblockNo].ipfsAddr != _ipfsAddr);  // prevent re-submission
-        require(blockHistory[nowSblockNo+1].blockHeight == 0 && blockHistory[nowSblockNo+1].merkleRoot == 0x0
-                && blockHistory[nowSblockNo+1].ipfsAddr == 0x0 && blockHistory[nowSblockNo+1].timestamp == 0);
-        // require: ...
+        require(_merkleRoot != 0x0 && _ipfsAddr != 0x0);
+        require(blockHistory[nowSblockNo-1].merkleRoot != _merkleRoot && blockHistory[nowSblockNo-1].ipfsAddr != _ipfsAddr);  // prevent re-submission
+        require(blockHistory[nowSblockNo].blockHeight == 0 && blockHistory[nowSblockNo].merkleRoot == 0x0 &&
+                blockHistory[nowSblockNo].ipfsAddr == 0x0 && blockHistory[nowSblockNo].timestamp == 0);
         require(_minSuccessRate >= 0 && _minSuccessRate < 100);
+        // require: ...
 
-
-        // determine which phase of a opRound: genesis round, lottery, lottery-NDR, finalist, finalisr-NDR, or regular (nothing happened) sblock
-        // note:
-        //   * NDR = no-draw-round
-        //   * apart from genesis sblock, the articleCount is not used.
-        // TODO: how about add a variable to record current "phase" of a OpRound?
+        // a sblock in a opRound cound be of type: genesis, lottery, lottery-NDR, finalist, finalist-NDR, or regular
+        // (NDR = no-draw-round)
         if (opRound == 0 && articleCount + _uniqArticleCount >= 20) {  // genesis; set 20 for test purpose
-            require(_lotteryIpfs == '0x0' && _minSuccessRate == 0 && _finalListIpfs == '0x0' && _successRateDB == '0x0');
+            require(_lotteryIpfs == 0x0 && _minSuccessRate == 0 && _finalListIpfs == 0x0 && _successRateDB == 0x0);
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
-                0, '0x0', 0, '0x0', '0x0'
+                0, 0x0, 0, 0x0, 0x0
             );
             v2EndTime = block.timestamp;  // although no 'claiming', still record a time
             atV1 = true;
             _toNextOpRound();
-        } else if (atV1 && isEnoughV1(roundVote1Count+_vote1Count)) {  // lottery
-            require(opRound != 0 && lotterySblockNo[opRound] == 0);
-            require(_finalListIpfs == '0x0' && _successRateDB == '0x0' && _lotteryIpfs != 0x0);
+        } else if (opRound != 0 && atV1 && isEnoughV1(roundVote1Count+_vote1Count)) {  // lottery
+            require(lotterySblockNo[opRound] == 0);
+            require(_lotteryIpfs != 0x0 && _minSuccessRate > 0 && _successRateDB == 0x0 && _finalListIpfs == 0x0);
             // check: this winNumber equal to result of calcWinNumber()
             uint winNumber = uint(keccak256(abi.encodePacked(_merkleRoot, blockhash(block.number-1))));
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
-                winNumber, _lotteryIpfs, _minSuccessRate, '0x0', '0x0'
+                winNumber, _lotteryIpfs, _minSuccessRate, 0x0, 0x0
             );
             v1EndTime = block.timestamp;
             vote1Threshold = _increaseThreshold(vote1Threshold);
             lotterySblockNo[opRound] = nowSblockNo;
             roundVote1Count = 0;  // need to reset otherwise next call will fall into this if-statement again
             roundVote2Count = 0;  // should be 0 already but reset anyway
-            articleCount = 0;
             atV1 = false;
-        } else if (atV1 && (block.timestamp - v2EndTime > 12 hours)) {  // too long! This OpRound-v1 is a "no-draw-round"! Proceed to next OpRound
+        } else if (opRound != 0 && atV1 && (block.timestamp - v2EndTime > 12 hours)) {  // too long! This OpRound-v1 is a "no-draw-round"! Proceed to next OpRound
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
-                0, _lotteryIpfs, _minSuccessRate, '0x0', '0x0'
+                0, 0x0, 0, 0x0, 0x0
             );
             v1EndTime = block.timestamp-1;  // or don't update? BTW, subtract by 1 to make sure v2EndTime > v1Endtime (or no need?)
             v2EndTime = block.timestamp;  // in case next submit() fall into this if-statement again
             vote1Threshold = _decreaseThreshold(vote1Threshold);
-            lotterySblockNo[opRound] = nowSblockNo;  // or don't do this?
-            atV1 = true;
+            lotterySblockNo[opRound] = nowSblockNo;  // or don't record a on-draw-round?
+            atV1 = true;  // end this OpRound-v1, proceed to next OpRound-v1
             _toNextOpRound();
-        } else if (atV1 == false && isEnoughV2(roundVote2Count+_vote2Count)) { // finalist
-            require(opRound != 0 && v1EndTime > blockHistory[nowSblockNo].timestamp);
-            require(_lotteryIpfs == '0x0' && _minSuccessRate == 0);
+        } else if (opRound != 0 && atV1 == false && isEnoughV2(roundVote2Count+_vote2Count)) { // finalist
+            // require(v1EndTime > blockHistory[nowSblockNo].timestamp);
+            require(_lotteryIpfs == 0x0 && _minSuccessRate == 0);
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
-                0, '0x0', 0, _successRateDB, _finalListIpfs
+                0, 0x0, 0, _successRateDB, _finalListIpfs
             );
             v2EndTime = block.timestamp;
             vote2Threshold = _increaseThreshold(vote2Threshold);
             atV1 = true;
             _toNextOpRound();
-        } else if (atV1 == false && (block.timestamp - v1EndTime > 12 hours)) {  // too long! End this Opround-v2 and proceed to next OpRound
-            require(_lotteryIpfs == '0x0' && _minSuccessRate == 0);
+        } else if (opRound != 0 && atV1 == false && (block.timestamp - v1EndTime > 12 hours)) {  // too long! End this Opround-v2 and proceed to next OpRound
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
-                0, '0x0', 0, _successRateDB, _finalListIpfs
+                0, 0x0, 0, _successRateDB, _finalListIpfs
             );
             vote2Threshold = _decreaseThreshold(vote2Threshold);
             v2EndTime = block.timestamp;
             atV1 = true;
             _toNextOpRound();
         } else {  // regular sblock, only accumulate votes
-            require(_lotteryIpfs == '0x0' && _minSuccessRate == 0 && _finalListIpfs == '0x0' && _successRateDB == '0x0');
+            require(_lotteryIpfs == 0x0 && _minSuccessRate == 0 && _successRateDB == 0x0 && _finalListIpfs == 0x0);
             roundVote1Count += _vote1Count;
             roundVote2Count += _vote2Count;
             articleCount += _uniqArticleCount;  // right now, this is only used in genesis
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp, _uniqArticleCount, _vote1Count, _vote2Count, opRound,
-                0, '0x0', 0, '0x0', '0x0'
+                0, 0x0, 0, 0x0, 0x0
             );
         }
 
@@ -225,8 +221,8 @@ contract BlockRegistry{
     function isEnoughV2(uint v2Count) public view returns (bool) {
         uint activeMemberCount = MemberShipInterface(memberContractAddr).getActiveMemberCount();
         require(activeMemberCount >= 3);  // '3' is num of coreManagers, or use 1? 100?
-        // vote2Rate already select 25% of people from 50% of member, i.e., 1/8 of total members
-        // Here try to keep vote2Rate roughly in the range of 0 and 100, so multiply 8 back
+        // vote2Rate select ABOUT 25% of people from 50% of member, i.e., ~1/8 of total members
+        // Here try to keep vote2Rate roughly in the range of 0 and 100, so multiply 8 back.
         // Note that the '1/8' factor is uncertain, so 'vote2Rate' could be larger than 100
         uint vote2Rate = (8 * 100 * v2Count) / activeMemberCount;
         if (vote2Rate > vote2Threshold) {
@@ -279,22 +275,23 @@ contract BlockRegistry{
         }
     }
 
-    // function txExist(bytes32[] memory proof, bool[] memory isLeft, bytes32 txHash, uint _sblockNo) public view returns (bool){
-    //     require(_sblockNo < nowSblockNo);
-    //     require(blockHistory[_sblockNo].merkleRoot != 0x0);
-    //     return merkleTreeValidator(proof, isLeft, txHash, blockHistory[_sblockNo].merkleRoot);
-    // }
+    // claim reward
+    function txExist(bytes32[] memory proof, bool[] memory isLeft, bytes32 txHash, uint _sblockNo) public view returns (bool){
+        require(_sblockNo < nowSblockNo);
+        require(blockHistory[_sblockNo].merkleRoot != 0x0);
+        return merkleTreeValidator(proof, isLeft, txHash, blockHistory[_sblockNo].merkleRoot);
+    }
 
-    // function claimReward(
-    //     bytes32[] calldata proof1, bool[] calldata isLeft1, bytes32 txHash1, uint sblockNo1,
-    //     bytes32[] calldata proof2, bool[] calldata isLeft2, bytes32 txHash2, uint sblockNo2
-    // ) external view returns(bool) {
-    //     // need to proof both articles are in the tree and both submitted by the msg.sender (using calcLeaf() below)
-    //     require(sblockNo1 > nowSblockNo && sblockNo1 < nowSblockNo + 12);
-    //     // require(sblockNo2 == sblockNo1 + 2);  // is it always true?
-    //     // require txHash1 = generateTxHash(msg.sender, ...)
-    //     require(txExist(proof1, isLeft1, txHash1, sblockNo1) && txExist(proof2, isLeft2, txHash2, sblockNo2));
-    // }
+    function claimReward(
+        bytes32[] calldata proof1, bool[] calldata isLeft1, bytes32 txHash1, uint sblockNo1,
+        bytes32[] calldata proof2, bool[] calldata isLeft2, bytes32 txHash2, uint sblockNo2
+    ) external view returns(bool) {
+        // need to proof both articles are in the tree and both submitted by the msg.sender (using calcLeaf() below)
+        require(sblockNo1 > nowSblockNo && sblockNo1 < nowSblockNo + 12);
+        // require(sblockNo2 == sblockNo1 + 2);  // is it always true?
+        // require txHash1 = generateTxHash(msg.sender, ...)
+        require(txExist(proof1, isLeft1, txHash1, sblockNo1) && txExist(proof2, isLeft2, txHash2, sblockNo2));
+    }
 
     // merkle tree and leaves
     function merkleTreeValidator(
