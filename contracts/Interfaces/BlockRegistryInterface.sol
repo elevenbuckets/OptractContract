@@ -2,11 +2,28 @@ pragma solidity ^0.5.2;
 
 interface BlockRegistryInterface {
 
-    function submitMerkleRoot(uint _initHeight, bytes32 _merkleRoot, bytes32 _ipfsAddr) external returns (bool);
+    function submitMerkleRoot(
+        bytes32 _merkleRoot,
+        bytes32 _ipfsAddr,
+        uint _uniqArticleCount,
+        uint _vote1Count,
+        uint _vote2Count,
+        bytes32 _lotteryIpfs,
+        uint _minSuccessRate,
+        bytes32 _successRateDB,
+        bytes32 _finalListIpfs
+    ) external returns (bool);
+    function isEnoughV1(uint v1Count) external view returns (bool);
+    function isEnoughV2(uint v2Count) external view returns (bool);
+    function calcWinNumber(uint _sblockNo, bytes32 _bhash) external view returns(uint);
+    function isWinningTicket(uint _sblockNo, bytes32 _ticket) external view returns(bool);
+    function txExist(bytes32[] calldata proof, bool[] calldata isLeft, bytes32 txHash, uint _sblockNo) external view returns (bool);
+    function claimReward(
+        bytes32[] calldata proof1, bool[] calldata isLeft1, bytes32 txHash1, uint sblockNo1,
+        bytes32[] calldata proof2, bool[] calldata isLeft2, bytes32 txHash2, uint sblockNo2
+    ) external view returns(bool);
     function merkleTreeValidator(bytes32[] calldata proof, bool[] calldata isLeft, bytes32 targetLeaf, bytes32 _merkleRoot) external pure returns (bool);
-    function calcLeaf(uint _nonce, bytes32 _ipfs, uint _since, uint _agree, uint _disagree, bytes32 _reply, bytes32 _comment) external view returns (bytes32);
-    function calcLeaf2(uint _nonce, address _sender, bytes32 _ipfs, uint _since, uint _agree, uint _disagree, bytes32 _reply, bytes32 _comment) external view returns (bytes32);
-    function calcAccountStateSummaryLeaf(address _account, uint _start, uint _end, uint _gain, uint _apUsed, uint _accReward) external returns (bytes32);
+    // function calcLeaf(uint _nonce, bytes32 _ipfs, uint _since, uint _agree, uint _disagree, bytes32 _reply, bytes32 _comment) external view returns (bytes32);
     function getBlockNo() external view returns (uint);
     function getBlockInfo(uint _sblockNo) external view returns (uint, bytes32, string memory);
     function queryValidator(uint _idx) external view returns (address);
