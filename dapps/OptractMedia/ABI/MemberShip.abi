@@ -1,175 +1,602 @@
 [
-	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "spender",
-				"type": "address"
-			},
-			{
-				"name": "value",
-				"type": "uint256"
-			}
-		],
-		"name": "approve",
-		"outputs": [
-			{
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [],
-		"name": "totalSupply",
-		"outputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "from",
-				"type": "address"
-			},
-			{
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"name": "value",
-				"type": "uint256"
-			}
-		],
-		"name": "transferFrom",
-		"outputs": [
-			{
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [
-			{
-				"name": "who",
-				"type": "address"
-			}
-		],
-		"name": "balanceOf",
-		"outputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"name": "value",
-				"type": "uint256"
-			}
-		],
-		"name": "transfer",
-		"outputs": [
-			{
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [
-			{
-				"name": "owner",
-				"type": "address"
-			},
-			{
-				"name": "spender",
-				"type": "address"
-			}
-		],
-		"name": "allowance",
-		"outputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"name": "owner",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"name": "spender",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"name": "value",
-				"type": "uint256"
-			}
-		],
-		"name": "Approval",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"name": "from",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"name": "value",
-				"type": "uint256"
-			}
-		],
-		"name": "Transfer",
-		"type": "event"
-	}
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "specialMemberBonus",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x05d104f2"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "QOTAddr",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x21a8770d"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "managers",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x3d39c260"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "paused",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x5c975abb"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "activeMemberCount",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x5fb6c6ed"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x8da5cb5b"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "memberPeriod",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xaba35b72"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "coreManagers",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xcc523d37"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "fee",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xddca3f43"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "totalId",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xe8826565"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "appWhitelist",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xfe2b5de1"
+  },
+  {
+    "inputs": [
+      {
+        "name": "_QOTAddr",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "constructor",
+    "signature": "constructor"
+  },
+  {
+    "constant": false,
+    "inputs": [],
+    "name": "buyMembership",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": true,
+    "stateMutability": "payable",
+    "type": "function",
+    "signature": "0x5c581119"
+  },
+  {
+    "constant": false,
+    "inputs": [],
+    "name": "renewMembership",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": true,
+    "stateMutability": "payable",
+    "type": "function",
+    "signature": "0x0933b939"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_id",
+        "type": "uint256"
+      },
+      {
+        "name": "_kycid",
+        "type": "bytes32"
+      }
+    ],
+    "name": "assginKYCid",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0xc9a69336"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_addr",
+        "type": "address"
+      }
+    ],
+    "name": "addWhitelistApps",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0x0d2da680"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_addr",
+        "type": "address"
+      }
+    ],
+    "name": "rmWhitelistApps",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0xa7f70e73"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_id",
+        "type": "uint256"
+      },
+      {
+        "name": "_penalty",
+        "type": "uint256"
+      }
+    ],
+    "name": "addPenalty",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0xc6906749"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_id",
+        "type": "uint256"
+      }
+    ],
+    "name": "readNotes",
+    "outputs": [
+      {
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xc449b262"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_id",
+        "type": "uint256"
+      },
+      {
+        "name": "_notes",
+        "type": "string"
+      }
+    ],
+    "name": "addNotes",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0xd9ed28b7"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_addr",
+        "type": "address"
+      }
+    ],
+    "name": "toggleSpeicalMember",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0x3c58aa94"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_addr",
+        "type": "address"
+      }
+    ],
+    "name": "addrIsMember",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x7a7d32e5"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_addr",
+        "type": "address"
+      }
+    ],
+    "name": "addrIsActiveMember",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xc41a32ec"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_id",
+        "type": "uint256"
+      }
+    ],
+    "name": "idIsMember",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xf3334ed8"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_id",
+        "type": "uint256"
+      }
+    ],
+    "name": "idIsActiveMember",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x9dd9d6d5"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_id",
+        "type": "uint256"
+      }
+    ],
+    "name": "idExpireTime",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x3d9d5a7a"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_addr",
+        "type": "address"
+      }
+    ],
+    "name": "addrToId",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xa33c4df1"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_addr",
+        "type": "address"
+      }
+    ],
+    "name": "getMemberInfo",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x5f1231ea"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "getActiveMemberCount",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x22faa41f"
+  },
+  {
+    "constant": false,
+    "inputs": [],
+    "name": "updateActiveMembers",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0xc5bc3861"
+  },
+  {
+    "constant": false,
+    "inputs": [],
+    "name": "pause",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0x8456cb59"
+  },
+  {
+    "constant": false,
+    "inputs": [],
+    "name": "unpause",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0x3f4ba83a"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_addr",
+        "type": "address"
+      },
+      {
+        "name": "_id",
+        "type": "uint256"
+      }
+    ],
+    "name": "updateManager",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0xd8de1066"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_addr",
+        "type": "address"
+      }
+    ],
+    "name": "updateQOTAddr",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0xdb8cd254"
+  }
 ]

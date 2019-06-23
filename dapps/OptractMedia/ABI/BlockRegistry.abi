@@ -1,762 +1,789 @@
 [
-	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "_newManager",
-				"type": "address"
-			}
-		],
-		"name": "setManager",
-		"outputs": [
-			{
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "_newValidator",
-				"type": "address"
-			},
-			{
-				"name": "_idx",
-				"type": "uint256"
-			}
-		],
-		"name": "setValidator",
-		"outputs": [
-			{
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "_merkleRoot",
-				"type": "bytes32"
-			},
-			{
-				"name": "_ipfsAddr",
-				"type": "bytes32"
-			},
-			{
-				"name": "_uniqArticleCount",
-				"type": "uint256"
-			},
-			{
-				"name": "_vote1Count",
-				"type": "uint256"
-			},
-			{
-				"name": "_vote2Count",
-				"type": "uint256"
-			},
-			{
-				"name": "_lotteryIpfs",
-				"type": "bytes32"
-			},
-			{
-				"name": "_minSuccessRate",
-				"type": "uint256"
-			},
-			{
-				"name": "_successRateDB",
-				"type": "bytes32"
-			},
-			{
-				"name": "_finalListIpfs",
-				"type": "bytes32"
-			}
-		],
-		"name": "submitMerkleRoot",
-		"outputs": [
-			{
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [],
-		"name": "toggleGame",
-		"outputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "_seconds",
-				"type": "uint256"
-			}
-		],
-		"name": "updateMaxVoteTime",
-		"outputs": [],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"name": "_memberContractAddr",
-				"type": "address"
-			}
-		],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"constant": true,
-		"inputs": [
-			{
-				"name": "_ticket",
-				"type": "bytes32"
-			},
-			{
-				"name": "_digit",
-				"type": "uint8"
-			}
-		],
-		"name": "_getBytes32HexNthDigit",
-		"outputs": [
-			{
-				"name": "",
-				"type": "bytes1"
-			}
-		],
-		"payable": false,
-		"stateMutability": "pure",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [],
-		"name": "articleCount",
-		"outputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [],
-		"name": "atV1",
-		"outputs": [
-			{
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "blockHistory",
-		"outputs": [
-			{
-				"name": "validator",
-				"type": "address"
-			},
-			{
-				"name": "blockHeight",
-				"type": "uint256"
-			},
-			{
-				"name": "merkleRoot",
-				"type": "bytes32"
-			},
-			{
-				"name": "ipfsAddr",
-				"type": "bytes32"
-			},
-			{
-				"name": "timestamp",
-				"type": "uint256"
-			},
-			{
-				"name": "uniqArticleCount",
-				"type": "uint256"
-			},
-			{
-				"name": "vote1Count",
-				"type": "uint256"
-			},
-			{
-				"name": "vote2Count",
-				"type": "uint256"
-			},
-			{
-				"name": "opRound",
-				"type": "uint256"
-			},
-			{
-				"name": "lotteryWinNumber",
-				"type": "uint256"
-			},
-			{
-				"name": "lotteryIpfs",
-				"type": "bytes32"
-			},
-			{
-				"name": "minSuccessRate",
-				"type": "uint256"
-			},
-			{
-				"name": "succesRateDB",
-				"type": "bytes32"
-			},
-			{
-				"name": "finanListIpfs",
-				"type": "bytes32"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [
-			{
-				"name": "_sblockNo",
-				"type": "uint256"
-			},
-			{
-				"name": "_bhash",
-				"type": "bytes32"
-			}
-		],
-		"name": "calcWinNumber",
-		"outputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [
-			{
-				"name": "proof1",
-				"type": "bytes32[]"
-			},
-			{
-				"name": "isLeft1",
-				"type": "bool[]"
-			},
-			{
-				"name": "txHash1",
-				"type": "bytes32"
-			},
-			{
-				"name": "sblockNo1",
-				"type": "uint256"
-			},
-			{
-				"name": "proof2",
-				"type": "bytes32[]"
-			},
-			{
-				"name": "isLeft2",
-				"type": "bool[]"
-			},
-			{
-				"name": "txHash2",
-				"type": "bytes32"
-			},
-			{
-				"name": "sblockNo2",
-				"type": "uint256"
-			}
-		],
-		"name": "claimReward",
-		"outputs": [
-			{
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [
-			{
-				"name": "_sblockNo",
-				"type": "uint256"
-			}
-		],
-		"name": "getBlockInfo",
-		"outputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			},
-			{
-				"name": "",
-				"type": "bytes32"
-			},
-			{
-				"name": "",
-				"type": "bytes32"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [],
-		"name": "getBlockNo",
-		"outputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [
-			{
-				"name": "v1Count",
-				"type": "uint256"
-			}
-		],
-		"name": "isEnoughV1",
-		"outputs": [
-			{
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [
-			{
-				"name": "v2Count",
-				"type": "uint256"
-			}
-		],
-		"name": "isEnoughV2",
-		"outputs": [
-			{
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [],
-		"name": "isValidator",
-		"outputs": [
-			{
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [
-			{
-				"name": "_sblockNo",
-				"type": "uint256"
-			},
-			{
-				"name": "_ticket",
-				"type": "bytes32"
-			}
-		],
-		"name": "isWinningTicket",
-		"outputs": [
-			{
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "lotterySblockNo",
-		"outputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "managers",
-		"outputs": [
-			{
-				"name": "",
-				"type": "address"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [],
-		"name": "maxVoteTime",
-		"outputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [],
-		"name": "memberContractAddr",
-		"outputs": [
-			{
-				"name": "",
-				"type": "address"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [
-			{
-				"name": "proof",
-				"type": "bytes32[]"
-			},
-			{
-				"name": "isLeft",
-				"type": "bool[]"
-			},
-			{
-				"name": "targetLeaf",
-				"type": "bytes32"
-			},
-			{
-				"name": "_merkleRoot",
-				"type": "bytes32"
-			}
-		],
-		"name": "merkleTreeValidator",
-		"outputs": [
-			{
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"payable": false,
-		"stateMutability": "pure",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [],
-		"name": "nowSblockNo",
-		"outputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [],
-		"name": "opRound",
-		"outputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [],
-		"name": "opRoundStatus",
-		"outputs": [
-			{
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [],
-		"name": "queryManagers",
-		"outputs": [
-			{
-				"name": "",
-				"type": "address[4]"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [
-			{
-				"name": "_idx",
-				"type": "uint256"
-			}
-		],
-		"name": "queryValidator",
-		"outputs": [
-			{
-				"name": "",
-				"type": "address"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [],
-		"name": "roundVote1Count",
-		"outputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [],
-		"name": "roundVote2Count",
-		"outputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [],
-		"name": "sblockTimeStep",
-		"outputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [
-			{
-				"name": "proof",
-				"type": "bytes32[]"
-			},
-			{
-				"name": "isLeft",
-				"type": "bool[]"
-			},
-			{
-				"name": "txHash",
-				"type": "bytes32"
-			},
-			{
-				"name": "_sblockNo",
-				"type": "uint256"
-			}
-		],
-		"name": "txExist",
-		"outputs": [
-			{
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [],
-		"name": "v1EndTime",
-		"outputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [],
-		"name": "v2EndTime",
-		"outputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "validators",
-		"outputs": [
-			{
-				"name": "",
-				"type": "address"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [],
-		"name": "vote1Threshold",
-		"outputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [],
-		"name": "vote2Threshold",
-		"outputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	}
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "maxVoteTime",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x06937af5"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "sblockTimeStep",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x17ca3256"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "validators",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x35aa2e44"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "managers",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x3d39c260"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "articleCount",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x414e28b0"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "vote1Threshold",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x417d63e9"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "lotterySblockNo",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x50cd04e7"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "roundVote2Count",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x7376faf2"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "vote2Threshold",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x82eea47a"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "atV1",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x9bb71caa"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "opRoundLog",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xa32852fc"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "v1EndTime",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xa3629b04"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "opRound",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xb9fedac7"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "memberContractAddr",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xc170f356"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "roundVote1Count",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xd64d8c02"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "blockHistory",
+    "outputs": [
+      {
+        "name": "validator",
+        "type": "address"
+      },
+      {
+        "name": "blockHeight",
+        "type": "uint256"
+      },
+      {
+        "name": "merkleRoot",
+        "type": "bytes32"
+      },
+      {
+        "name": "ipfsAddr",
+        "type": "bytes32"
+      },
+      {
+        "name": "timestamp",
+        "type": "uint256"
+      },
+      {
+        "name": "uniqArticleCount",
+        "type": "uint256"
+      },
+      {
+        "name": "vote1Count",
+        "type": "uint256"
+      },
+      {
+        "name": "vote2Count",
+        "type": "uint256"
+      },
+      {
+        "name": "opRoundId",
+        "type": "bytes32"
+      },
+      {
+        "name": "lotteryWinNumber",
+        "type": "bytes32"
+      },
+      {
+        "name": "lotteryIpfs",
+        "type": "bytes32"
+      },
+      {
+        "name": "minSuccessRate",
+        "type": "uint256"
+      },
+      {
+        "name": "succesRateDB",
+        "type": "bytes32"
+      },
+      {
+        "name": "finanListIpfs",
+        "type": "bytes32"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xde250ace"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "nowSblockNo",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xdeefebc1"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "v2EndTime",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xfd0492b1"
+  },
+  {
+    "inputs": [
+      {
+        "name": "_memberContractAddr",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "constructor",
+    "signature": "constructor"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_seconds",
+        "type": "uint256"
+      }
+    ],
+    "name": "updateMaxVoteTime",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0x9786007a"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_merkleRoot",
+        "type": "bytes32"
+      },
+      {
+        "name": "_ipfsAddr",
+        "type": "bytes32"
+      },
+      {
+        "name": "_uniqArticleCount",
+        "type": "uint256"
+      },
+      {
+        "name": "_vote1Count",
+        "type": "uint256"
+      },
+      {
+        "name": "_vote2Count",
+        "type": "uint256"
+      },
+      {
+        "name": "_lotteryIpfs",
+        "type": "bytes32"
+      },
+      {
+        "name": "_minSuccessRate",
+        "type": "uint256"
+      },
+      {
+        "name": "_successRateDB",
+        "type": "bytes32"
+      },
+      {
+        "name": "_finalListIpfs",
+        "type": "bytes32"
+      }
+    ],
+    "name": "submitMerkleRoot",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0xa991f6c2"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "v1Count",
+        "type": "uint256"
+      }
+    ],
+    "name": "isEnoughV1",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x0137aca4"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "v2Count",
+        "type": "uint256"
+      }
+    ],
+    "name": "isEnoughV2",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x6cb0999b"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_sblockNo",
+        "type": "uint256"
+      },
+      {
+        "name": "_bhash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "calcWinNumber",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x7e490018"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_ticket",
+        "type": "bytes32"
+      },
+      {
+        "name": "_digit",
+        "type": "uint8"
+      }
+    ],
+    "name": "_getBytes32HexNthDigit",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes1"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "pure",
+    "type": "function",
+    "signature": "0xd17eaa47"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_sblockNo",
+        "type": "uint256"
+      },
+      {
+        "name": "_ticket",
+        "type": "bytes32"
+      }
+    ],
+    "name": "isWinningTicket",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x53311f95"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "proof",
+        "type": "bytes32[]"
+      },
+      {
+        "name": "isLeft",
+        "type": "bool[]"
+      },
+      {
+        "name": "txHash",
+        "type": "bytes32"
+      },
+      {
+        "name": "_sblockNo",
+        "type": "uint256"
+      }
+    ],
+    "name": "txExist",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x316f0d84"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "proof1",
+        "type": "bytes32[]"
+      },
+      {
+        "name": "isLeft1",
+        "type": "bool[]"
+      },
+      {
+        "name": "txHash1",
+        "type": "bytes32"
+      },
+      {
+        "name": "sblockNo1",
+        "type": "uint256"
+      },
+      {
+        "name": "proof2",
+        "type": "bytes32[]"
+      },
+      {
+        "name": "isLeft2",
+        "type": "bool[]"
+      },
+      {
+        "name": "txHash2",
+        "type": "bytes32"
+      },
+      {
+        "name": "sblockNo2",
+        "type": "uint256"
+      }
+    ],
+    "name": "claimReward",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x09c7a12c"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "proof",
+        "type": "bytes32[]"
+      },
+      {
+        "name": "isLeft",
+        "type": "bool[]"
+      },
+      {
+        "name": "targetLeaf",
+        "type": "bytes32"
+      },
+      {
+        "name": "_merkleRoot",
+        "type": "bytes32"
+      }
+    ],
+    "name": "merkleTreeValidator",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "pure",
+    "type": "function",
+    "signature": "0xb8f69e37"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "getBlockNo",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xfba0e4bb"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_sblockNo",
+        "type": "uint256"
+      }
+    ],
+    "name": "getBlockInfo",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xbb141cf4"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_idx",
+        "type": "uint256"
+      }
+    ],
+    "name": "queryValidator",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x810e0b20"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "isValidator",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x330e9e3d"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "queryManagers",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address[4]"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xca48c69d"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_newValidator",
+        "type": "address"
+      },
+      {
+        "name": "_idx",
+        "type": "uint256"
+      }
+    ],
+    "name": "setValidator",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0xabb9406b"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_newManager",
+        "type": "address"
+      }
+    ],
+    "name": "setManager",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0xd0ebdbe7"
+  }
 ]
