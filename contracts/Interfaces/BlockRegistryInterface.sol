@@ -15,7 +15,7 @@ interface BlockRegistryInterface {
     ) external returns (bool);
     function isEnoughV1(uint v1Count) external view returns (bool);
     function isEnoughV2(uint v2Count) external view returns (bool);
-    function calcWinNumber(uint _sblockNo, bytes32 _bhash) external view returns(uint);
+    function calcWinNumber(uint _sblockNo, bytes32 _bhash) external view returns(bytes32);
     function isWinningTicket(uint _sblockNo, bytes32 _ticket) external view returns(bool);
     function txExist(bytes32[] calldata proof, bool[] calldata isLeft, bytes32 txHash, uint _sblockNo) external view returns (bool);
     function claimReward(
