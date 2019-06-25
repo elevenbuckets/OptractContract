@@ -96,6 +96,13 @@ contract BlockRegistry{
         maxVoteTime = _seconds;
     }
 
+    function setThreshold(uint _x, uint _y) public validatorOnly{
+        require(_x >= 5 && _x <=95);
+        require(_y >= 5 && _y <=95);
+        vote1Threshold = _x;
+        vote2Threshold = _y;
+    }
+
     // some internal functions
     function _increaseThreshold(uint _x) internal pure returns(uint) {
         if (_x <= 90) {
@@ -270,7 +277,7 @@ contract BlockRegistry{
         }
     }
 
-    function isWinningTicket(uint _sblockNo, bytes32 _ticket) public view returns(bool) {
+    function isWinningTicket(uint _sblockNo, bytes32 _ticket) public view returns(bool) {  // TODO: change _sblockNo to opRound?
         // a ticket is a winning ticket if: it's X-th digit (count from behind) is Y
         // where `X` is determined by first digit of `lotteryWinNumber` (in the range of 0 and 3)
         // and `Y` is the last digit of `winHex`
@@ -375,6 +382,18 @@ contract BlockRegistry{
 
     function queryManagers() external view returns (address[4] memory) {
         return managers;
+    }
+
+    function queryOpRound() external view returns (uint) {
+        return opRound;
+    }
+
+    function queryOpRoundId(uint _opRound) external view returns (bytes32) {
+        if (_opRound != 0) {
+            return opRoundLog[_opRound];
+        } else {
+            return opRoundLog[opRound];  // current opRound
+        }
     }
 
     // upgradable

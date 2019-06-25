@@ -2,6 +2,8 @@ pragma solidity ^0.5.2;
 
 interface BlockRegistryInterface {
 
+    function updateMaxVoteTime(uint _seconds) external;
+    function setThreshold(uint _x, uint _y) external;
     function submitMerkleRoot(
         bytes32 _merkleRoot,
         bytes32 _ipfsAddr,

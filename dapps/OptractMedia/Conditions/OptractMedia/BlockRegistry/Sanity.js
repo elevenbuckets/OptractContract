@@ -1,5 +1,9 @@
 module.exports =
 {
+        BlockRegistry_setThreshold_sanity(addr, jobObj)
+	{
+		return true;
+	},
         BlockRegistry_updateMaxVoteTime_sanity(addr, jobObj)
 	{
 		return true;

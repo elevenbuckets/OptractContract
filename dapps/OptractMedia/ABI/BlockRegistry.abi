@@ -377,6 +377,25 @@
     "constant": false,
     "inputs": [
       {
+        "name": "_x",
+        "type": "uint256"
+      },
+      {
+        "name": "_y",
+        "type": "uint256"
+      }
+    ],
+    "name": "setThreshold",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0xb9c36209"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
         "name": "_merkleRoot",
         "type": "bytes32"
       },
@@ -741,6 +760,41 @@
     "stateMutability": "view",
     "type": "function",
     "signature": "0xca48c69d"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "queryOpRound",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x8ccbaca4"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_opRound",
+        "type": "uint256"
+      }
+    ],
+    "name": "queryOpRoundId",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xd9eb08f6"
   },
   {
     "constant": false,

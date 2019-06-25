@@ -10,8 +10,9 @@ module.exports = function(deployer) {
     deployer.deploy(StandardToken);
     return deployer.deploy(QOT).then( () => {
         return deployer.deploy(MemberShip, QOT.address).then ( (iMemberShip) => {
-            return deployer.deploy(BlockRegistry, MemberShip.address).then( ()=>{
-                iMemberShip.addWhitelistApps(BlockRegistry.address, (err,r) => {
+            return deployer.deploy(BlockRegistry, MemberShip.address).then( (iBlock)=>{
+                // iMemberShip.addWhitelistApps(BlockRegistry.address, (err,r) => {  // cannot work?
+                iMemberShip.addWhitelistApps(iBlock.address, (err,r) => {  // need test
                     if (err) { console.trace(err); throw "bad2" };
                 })
             })
