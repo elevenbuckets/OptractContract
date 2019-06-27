@@ -80,6 +80,10 @@ module.exports =
 	{
 		return true;
 	},
+        BlockRegistry_queryOpRoundLottery_sanity(addr, jobObj)
+	{
+		return true;
+	},
         BlockRegistry_queryOpRoundData_sanity(addr, jobObj)
 	{
 		return true;

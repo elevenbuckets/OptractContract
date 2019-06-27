@@ -249,22 +249,6 @@
       {
         "name": "opRoundId",
         "type": "bytes32"
-      },
-      {
-        "name": "lotteryWinNumber",
-        "type": "bytes32"
-      },
-      {
-        "name": "minSuccessRate",
-        "type": "uint256"
-      },
-      {
-        "name": "succesRateDB",
-        "type": "bytes32"
-      },
-      {
-        "name": "finanListIpfs",
-        "type": "bytes32"
       }
     ],
     "payable": false,
@@ -756,7 +740,7 @@
         "type": "uint256"
       }
     ],
-    "name": "queryOpRoundData",
+    "name": "queryOpRoundLottery",
     "outputs": [
       {
         "name": "",
@@ -768,7 +752,43 @@
       },
       {
         "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x7c14de6c"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_opRound",
         "type": "uint256"
+      }
+    ],
+    "name": "queryOpRoundData",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "bytes32"
       },
       {
         "name": "",

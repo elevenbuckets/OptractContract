@@ -32,7 +32,8 @@ interface BlockRegistryInterface {
     function queryManagers() external view returns (address[4] memory);
     function queryOpRound() external view returns (uint);
     function queryOpRoundId(uint _opRound) external view returns (bytes32);
-    function queryOpRoundData(uint _opRound) external view returns (uint, uint, uint, bytes32);
+    function queryOpRoundLottery(uint _opRound) external view returns (uint, uint, bytes32);
+    function queryOpRoundData(uint _opRound) external view returns (uint, bytes32, uint, uint, bytes32, bytes32);
     function setValidator(address _newValidator, uint _idx) external returns (bool);
     function setManager(address _newManager) external returns (bool);
 }
