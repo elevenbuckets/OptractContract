@@ -10,7 +10,6 @@ interface BlockRegistryInterface {
         uint _uniqArticleCount,
         uint _vote1Count,
         uint _vote2Count,
-        bytes32 _lotteryIpfs,
         uint _minSuccessRate,
         bytes32 _successRateDB,
         bytes32 _finalListIpfs
@@ -31,6 +30,9 @@ interface BlockRegistryInterface {
     function queryValidator(uint _idx) external view returns (address);
     function isValidator() external view returns (bool);
     function queryManagers() external view returns (address[4] memory);
+    function queryOpRound() external view returns (uint);
+    function queryOpRoundId(uint _opRound) external view returns (bytes32);
+    function queryOpRoundData(uint _opRound) external view returns (uint, uint, uint, bytes32);
     function setValidator(address _newValidator, uint _idx) external returns (bool);
     function setManager(address _newManager) external returns (bool);
 }

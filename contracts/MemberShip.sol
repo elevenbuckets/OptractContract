@@ -243,7 +243,7 @@ contract MemberShip {
 
     function _countActiveMembers() internal view returns (uint) {
         uint _count = 0;
-        for (uint i = 0; i < totalId; i++) {
+        for (uint i = 0; i <= totalId; i++) {
             if (idExpireTime(i) > block.timestamp) {
                 _count += 1;
             }

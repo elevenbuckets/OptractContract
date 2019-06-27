@@ -101,26 +101,6 @@
   },
   {
     "constant": true,
-    "inputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "lotterySblockNo",
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function",
-    "signature": "0x50cd04e7"
-  },
-  {
-    "constant": true,
     "inputs": [],
     "name": "roundVote2Count",
     "outputs": [
@@ -163,26 +143,6 @@
     "stateMutability": "view",
     "type": "function",
     "signature": "0x9bb71caa"
-  },
-  {
-    "constant": true,
-    "inputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "opRoundLog",
-    "outputs": [
-      {
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function",
-    "signature": "0xa32852fc"
   },
   {
     "constant": true,
@@ -292,10 +252,6 @@
       },
       {
         "name": "lotteryWinNumber",
-        "type": "bytes32"
-      },
-      {
-        "name": "lotteryIpfs",
         "type": "bytes32"
       },
       {
@@ -416,10 +372,6 @@
         "type": "uint256"
       },
       {
-        "name": "_lotteryIpfs",
-        "type": "bytes32"
-      },
-      {
         "name": "_minSuccessRate",
         "type": "uint256"
       },
@@ -442,7 +394,7 @@
     "payable": false,
     "stateMutability": "nonpayable",
     "type": "function",
-    "signature": "0xa991f6c2"
+    "signature": "0x066a2236"
   },
   {
     "constant": true,
@@ -795,6 +747,38 @@
     "stateMutability": "view",
     "type": "function",
     "signature": "0xd9eb08f6"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_opRound",
+        "type": "uint256"
+      }
+    ],
+    "name": "queryOpRoundData",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xd53065ae"
   },
   {
     "constant": false,
