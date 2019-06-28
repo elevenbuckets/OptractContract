@@ -357,7 +357,7 @@
       },
       {
         "name": "_minSuccessRate",
-        "type": "uint256"
+        "type": "uint8"
       },
       {
         "name": "_successRateDB",
@@ -378,7 +378,7 @@
     "payable": false,
     "stateMutability": "nonpayable",
     "type": "function",
-    "signature": "0x066a2236"
+    "signature": "0x1a479b97"
   },
   {
     "constant": true,
@@ -424,15 +424,15 @@
     "constant": true,
     "inputs": [
       {
-        "name": "_sblockNo",
-        "type": "uint256"
+        "name": "_mr",
+        "type": "bytes32"
       },
       {
         "name": "_bhash",
         "type": "bytes32"
       }
     ],
-    "name": "calcWinNumber",
+    "name": "calcLotteryWinNumber",
     "outputs": [
       {
         "name": "",
@@ -440,9 +440,9 @@
       }
     ],
     "payable": false,
-    "stateMutability": "view",
+    "stateMutability": "pure",
     "type": "function",
-    "signature": "0x7e490018"
+    "signature": "0x513536c1"
   },
   {
     "constant": true,
@@ -472,7 +472,55 @@
     "constant": true,
     "inputs": [
       {
-        "name": "_sblockNo",
+        "name": "_winHex",
+        "type": "bytes32"
+      },
+      {
+        "name": "_ticket",
+        "type": "bytes32"
+      }
+    ],
+    "name": "lotteryWins",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "pure",
+    "type": "function",
+    "signature": "0x802ddfd2"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_winHex",
+        "type": "bytes32"
+      },
+      {
+        "name": "_ticket",
+        "type": "bytes32"
+      }
+    ],
+    "name": "lotteryWins8",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "pure",
+    "type": "function",
+    "signature": "0x21bc7c66"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_opRound",
         "type": "uint256"
       },
       {
@@ -485,6 +533,10 @@
       {
         "name": "",
         "type": "bool"
+      },
+      {
+        "name": "",
+        "type": "uint8"
       }
     ],
     "payable": false,
@@ -669,7 +721,12 @@
   },
   {
     "constant": true,
-    "inputs": [],
+    "inputs": [
+      {
+        "name": "_addr",
+        "type": "address"
+      }
+    ],
     "name": "isValidator",
     "outputs": [
       {
@@ -680,7 +737,7 @@
     "payable": false,
     "stateMutability": "view",
     "type": "function",
-    "signature": "0x330e9e3d"
+    "signature": "0xfacd743b"
   },
   {
     "constant": true,
@@ -799,6 +856,29 @@
     "stateMutability": "view",
     "type": "function",
     "signature": "0xd53065ae"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "queryVoteThresholds",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x86e18f82"
   },
   {
     "constant": false,
