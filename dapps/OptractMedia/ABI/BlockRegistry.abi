@@ -360,6 +360,10 @@
         "type": "uint8"
       },
       {
+        "name": "_baseline",
+        "type": "uint256"
+      },
+      {
         "name": "_successRateDB",
         "type": "bytes32"
       },
@@ -378,7 +382,7 @@
     "payable": false,
     "stateMutability": "nonpayable",
     "type": "function",
-    "signature": "0x1a479b97"
+    "signature": "0xc1006b8a"
   },
   {
     "constant": true,
@@ -859,6 +863,58 @@
   },
   {
     "constant": true,
+    "inputs": [
+      {
+        "name": "_opRound",
+        "type": "uint256"
+      }
+    ],
+    "name": "queryOpRoundAllData",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xa618a089"
+  },
+  {
+    "constant": true,
     "inputs": [],
     "name": "queryVoteThresholds",
     "outputs": [
@@ -879,6 +935,34 @@
     "stateMutability": "view",
     "type": "function",
     "signature": "0x86e18f82"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_opRound",
+        "type": "uint256"
+      }
+    ],
+    "name": "queryFinalist",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xec5caf2a"
   },
   {
     "constant": false,

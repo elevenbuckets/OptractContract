@@ -88,6 +88,18 @@ module.exports =
 	{
 		return true;
 	},
+        BlockRegistry_queryOpRoundAllData_sanity(addr, jobObj)
+	{
+		return true;
+	},
+        BlockRegistry_queryFinalist_sanity(addr, jobObj)
+	{
+		return true;
+	},
+        BlockRegistry_queryVoteThresholds_sanity(addr, jobObj)
+	{
+		return true;
+	},
         BlockRegistry_setValidator_sanity(addr, jobObj)
 	{
 		return true;
