@@ -49,6 +49,7 @@ contract BlockRegistry{
         bytes32 lotteryWinNumber;
         // update in final-sblock
         uint8 minSuccessRate;  // shoud be an integer between 0 and 100; this is used in next opRound
+        uint baseline;  // i.e, the total votes of the vote2 winner
         bytes32 succesRateDB;  // IPFS contain success rate
         bytes32 finalListIpfs;
     }
@@ -125,7 +126,7 @@ contract BlockRegistry{
         }
     }
 
-    function _toNextOpRound(bytes32 _mr, uint8 _minSuccessRate, bytes32 _successRateDB, bytes32 _finalListIpfs) internal {
+    function _toNextOpRound(bytes32 _mr, uint8 _minSuccessRate, uint _baseline, bytes32 _successRateDB, bytes32 _finalListIpfs) internal {
         roundVote1Count = 0;
         roundVote2Count = 0;
         articleCount = 0;
@@ -133,6 +134,7 @@ contract BlockRegistry{
 
         // update current opRoundHistory
         opRoundHistory[opRound].minSuccessRate = _minSuccessRate;  // next opRound need this
+        opRoundHistory[opRound].baseline = _baseline;
         opRoundHistory[opRound].succesRateDB = _successRateDB;
         opRoundHistory[opRound].finalListIpfs = _finalListIpfs;
 
@@ -140,7 +142,7 @@ contract BlockRegistry{
         atV1 = true;
         opRound += 1;
         bytes32 _oid = bytes32(keccak256(abi.encodePacked(_mr, opRound)));
-        opRoundHistory[opRound] = opRoundStruct(_oid, nowSblockNo+1, 0, 0x0, 0, 0x0, 0x0);
+        opRoundHistory[opRound] = opRoundStruct(_oid, nowSblockNo+1, 0, 0x0, 0, 0, 0x0, 0x0);
         opRoundIdToNum[_oid] = opRound;
     }
 
@@ -152,6 +154,7 @@ contract BlockRegistry{
         uint _vote1Count,
         uint _vote2Count,
         uint8 _minSuccessRate,
+        uint _baseline,
         bytes32 _successRateDB,
         bytes32 _finalListIpfs
     ) public validatorOnly returns (bool) {
@@ -165,7 +168,7 @@ contract BlockRegistry{
         require(blockHistory[nowSblockNo-1].merkleRoot != _merkleRoot && blockHistory[nowSblockNo-1].ipfsAddr != _ipfsAddr);  // prevent re-submission
         require(blockHistory[nowSblockNo].blockHeight == 0 && blockHistory[nowSblockNo].merkleRoot == 0x0 &&
                 blockHistory[nowSblockNo].ipfsAddr == 0x0 && blockHistory[nowSblockNo].timestamp == 0);
-        require(_minSuccessRate >= 0 && _minSuccessRate < 100);
+        require(_minSuccessRate >= 0 && _minSuccessRate < 100);  // need the equal for genesis round
         // require: ...
 
         // a sblock in a opRound cound be of type: genesis, lottery, lottery-NDR, finalist, finalist-NDR, or regular
@@ -176,7 +179,7 @@ contract BlockRegistry{
                 _uniqArticleCount, _vote1Count, _vote2Count, opRoundHistory[opRound].id
             );
             v2EndTime = block.timestamp;  // although no 'claiming', still need to record a time
-            _toNextOpRound(_merkleRoot, 0, 0x0, 0x0);
+            _toNextOpRound(_merkleRoot, 0, 0, 0x0, 0x0);
         } else if (opRound != 0 && atV1 && isEnoughV1(roundVote1Count+_vote1Count)) {  // lottery
             require(opRoundHistory[opRound].lotteryBlockNo == 0 && opRoundHistory[opRound].lotteryWinNumber == 0x0);
             blockHistory[nowSblockNo] = blockStat(
@@ -198,16 +201,17 @@ contract BlockRegistry{
             v2EndTime = block.timestamp;  // in case next submit() fall into this if-statement again
             vote1Threshold = _decreaseThreshold(vote1Threshold);
             // opRoundHistory[opRound].lotteryBlockNo = nowSblockNo;  // should keep it 0
-            _toNextOpRound(_merkleRoot, 0, 0x0, 0x0);
+            _toNextOpRound(_merkleRoot, 0, 0, 0x0, 0x0);
         } else if (opRound != 0 && atV1 == false && isEnoughV2(roundVote2Count+_vote2Count)) { // finalist
             require(_successRateDB != 0x0 && _finalListIpfs != 0x0);
+            require(_baseline >= 1);  // what else reasonable min value?
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp,
                 _uniqArticleCount, _vote1Count, _vote2Count, opRoundHistory[opRound].id
             );
             vote2Threshold = _increaseThreshold(vote2Threshold);
             v2EndTime = block.timestamp;
-            _toNextOpRound(_merkleRoot, _minSuccessRate, _successRateDB, _finalListIpfs);
+            _toNextOpRound(_merkleRoot, _minSuccessRate, _baseline, _successRateDB, _finalListIpfs);
         } else if (opRound != 0 && atV1 == false && (block.timestamp - v1EndTime > maxVoteTime)) {  // too long! End this Opround-v2 and proceed to next OpRound
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp,
@@ -215,8 +219,8 @@ contract BlockRegistry{
             );  
             vote2Threshold = _decreaseThreshold(vote2Threshold);
             v2EndTime = block.timestamp;
-            // should validator update new _successRateDB in NDR?
-            _toNextOpRound(_merkleRoot, _minSuccessRate, _successRateDB, _finalListIpfs);
+            // should validator update new _successRateDB in NDR? should _baseline and finalListIpfs have values?
+            _toNextOpRound(_merkleRoot, _minSuccessRate, 0, _successRateDB, 0x0);
         } else {  // regular sblock, only accumulate votes
             roundVote1Count += _vote1Count;
             roundVote2Count += _vote2Count;
@@ -434,8 +438,37 @@ contract BlockRegistry{
                 opRoundHistory[i].succesRateDB, opRoundHistory[i].finalListIpfs);
     }
 
+    function queryOpRoundAllData(uint _opRound) external view returns (uint, bytes32, uint, uint, bytes32, bytes32, uint, bytes32, uint) {
+        uint i;
+        if (_opRound == 0) {
+            i = opRound;
+        } else {
+            i = _opRound;
+        }
+        return (i,
+                opRoundHistory[i].id,
+                opRoundHistory[i].initBlockNo,
+                opRoundHistory[i].minSuccessRate,
+                opRoundHistory[i].succesRateDB,
+                opRoundHistory[i].finalListIpfs,
+                opRoundHistory[i].lotteryBlockNo,
+                opRoundHistory[i].lotteryWinNumber,
+                opRoundHistory[i].baseline
+               );
+    }
+
     function queryVoteThresholds() external view returns(uint, uint, uint) {
         return (opRound, vote1Threshold, vote2Threshold);
+    }
+
+    function queryFinalist(uint _opRound) public view returns(uint, uint, bytes32){
+        uint i;
+        if (_opRound == 0) {
+            i = opRound;
+        } else {
+            i = _opRound;
+        }
+        return (i, opRoundHistory[i].baseline, opRoundHistory[i].finalListIpfs);
     }
 
     // upgradable
