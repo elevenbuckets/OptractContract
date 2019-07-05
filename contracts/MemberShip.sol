@@ -30,7 +30,7 @@ contract MemberShip {
     mapping (address => bool) internal specialMember;
     uint public specialMemberBonus = 10000 days;  // value set in constructor
 
-    mapping (address => bool) public appWhitelist;
+    address[16] public appWhitelist;
 
     constructor(address _QOTAddr) public {
         owner = msg.sender;
@@ -38,12 +38,16 @@ contract MemberShip {
                         0x4AD56641C569C91C64C28a904cda50AE5326Da41,
                         0xaF7400787c54422Be8B44154B1273661f1259CcD];
         managers = [address(0), address(0), address(0), address(0), address(0), address(0), address(0), address(0)];
+        appWhitelist = [
+            address(0), address(0), address(0), address(0), address(0), address(0), address(0), address(0),
+            address(0), address(0), address(0), address(0), address(0), address(0), address(0), address(0)
+        ];
         QOTAddr = _QOTAddr;
 
         for (uint8 i=0; i<3; i++){
             _assignMembership(coreManagers[i]);
             specialMember[coreManagers[i]] = true;
-            appWhitelist[coreManagers[i]] = true;
+            appWhitelist[i] = coreManagers[i];
         }
         assert(totalId == 3);
         activeMemberCount = 3;  // manually set an initial value
@@ -89,7 +93,14 @@ contract MemberShip {
     }
 
     modifier isAppWhitelist() {
-        require(appWhitelist[msg.sender]);
+        require(msg.sender != address(0));
+        require(msg.sender == appWhitelist[0] || msg.sender == appWhitelist[1] || msg.sender == appWhitelist[2] ||
+                msg.sender == appWhitelist[3] || msg.sender == appWhitelist[4] || msg.sender == appWhitelist[5] ||
+                msg.sender == appWhitelist[6] || msg.sender == appWhitelist[7] || msg.sender == appWhitelist[8] ||
+                msg.sender == appWhitelist[9] || msg.sender == appWhitelist[10] || msg.sender == appWhitelist[11] ||
+                msg.sender == appWhitelist[12] || msg.sender == appWhitelist[13] || msg.sender == appWhitelist[14] ||
+                msg.sender == appWhitelist[15]
+               );
         _;
     }
 
@@ -135,18 +146,33 @@ contract MemberShip {
         return true;
     }
 
-    function addWhitelistApps(address _addr) public coreManagerOnly returns (bool) {
-        appWhitelist[_addr] = true;
+    function addAppWhitelist(address _addr, uint _idx) public coreManagerOnly returns (bool) {
+        require(_addr != address(0));
+        require(appWhitelist[_idx] == address(0));
+        appWhitelist[_idx] = _addr;
         return true;
     }
 
-    function rmWhitelistApps(address _addr) public coreManagerOnly returns (bool) {
-        appWhitelist[_addr] = false;
-        return true;
+    function replaceAppWhitelist(address _addr, uint _idx) public coreManagerOnly returns (address) {
+        require(_addr != address(0));
+        require(appWhitelist[_idx] != address(0));
+        address _addrorig = appWhitelist[_idx];
+        appWhitelist[_idx] = _addr;
+        return _addrorig;
     }
 
-    function addPenalty(uint _id, uint _penalty) external returns (uint) {
-        require(appWhitelist[msg.sender] == true);  // the msg.sender (usually a contract) is in appWhitelist
+    function rmAppWhitelist(uint _idx) public coreManagerOnly returns (address) {
+        require(appWhitelist[_idx] != address(0));
+        address _addr = appWhitelist[_idx];
+        appWhitelist[_idx] == address(0);
+        return _addr;
+    }
+
+    function getAppWhitelist() external view managerOnly returns (address[16] memory) {
+        return appWhitelist;
+    }
+
+    function addPenalty(uint _id, uint _penalty) external isAppWhitelist returns (uint) {
         require(memberDB[_id].since > 0);  // is a member
         // require(_penalty < memberPeriod);  // prevent too much penalty
 
@@ -217,7 +243,7 @@ contract MemberShip {
     }
 
 
-    function getMemberInfo(address _addr) external view returns (uint, bytes32, uint, uint){
+    function getMemberInfo(address _addr) external view returns (uint, bytes32, uint, uint, bytes32){
         uint _id = addressToId[_addr];
         uint status;  // 0=connection error, 1=active, 2=inactive, 3=not member
         if (_id == 0) {
@@ -229,7 +255,7 @@ contract MemberShip {
                 status = 2;
             }
         }
-        return (status, bytes32(_id), memberDB[_id].since, memberDB[_id].penalty);
+        return (status, bytes32(_id), memberDB[_id].since, memberDB[_id].penalty, memberDB[_id].kycid);
     }
 
     function getActiveMemberCount() public view returns (uint){

@@ -12,11 +12,19 @@ module.exports =
         {
 		return true;
 	},
- 	MemberShip_addWhitelistApps_sanity(addr, jobObj)
+ 	MemberShip_addAppWhitelist_sanity(addr, jobObj)
         {
 		return true;
 	},
- 	MemberShip_rmWhitelistApps_sanity(addr, jobObj)
+ 	MemberShip_replaceAppWhitelist_sanity(addr, jobObj)
+        {
+		return true;
+	},
+ 	MemberShip_rmAppWhitelist_sanity(addr, jobObj)
+        {
+		return true;
+	},
+ 	MemberShip_getAppWhitelist_sanity(addr, jobObj)
         {
 		return true;
 	},

@@ -5,8 +5,10 @@ interface MemberShipInterface {
     function buyMembership() external payable returns (bool);
     function renewMembership() external payable returns (uint);
     function assginKYCid(uint _id, bytes32 _kycid) external returns (bool);
-    function addWhitelistApps(address _addr) external returns (bool);
-    function rmWhitelistApps(address _addr) external returns (bool);
+    function addAppWhitelist(address _addr, uint _idx) external returns (bool);
+    function replaceAppWhitelist(address _addr, uint _idx) external returns (address);
+    function rmAppWhitelist(uint _idx) external returns (address);
+    function getAppWhitelist() external view returns (address[16] memory);
     function addPenalty(uint _id, uint _penalty) external returns (uint);
     function readNotes(uint _id) external view returns (string memory);
     function addNotes(uint _id, string calldata _notes) external;
@@ -17,7 +19,7 @@ interface MemberShipInterface {
     function idIsActiveMember(uint _id) external view returns (bool);
     function idExpireTime(uint _id) external view returns (uint);
     function addrToId(address _addr) external view returns (uint);
-    function getMemberInfo(address _addr) external view returns (uint, bytes32, uint, uint);
+    function getMemberInfo(address _addr) external view returns (uint, bytes32, uint, uint, bytes32);
     function getActiveMemberCount() external view returns (uint);
     function updateActiveMembers() external returns (uint);
     function pause() external;

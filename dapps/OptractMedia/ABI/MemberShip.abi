@@ -37,6 +37,26 @@
         "type": "uint256"
       }
     ],
+    "name": "appWhitelist",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x3c94125a"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
     "name": "managers",
     "outputs": [
       {
@@ -160,26 +180,6 @@
     "signature": "0xe8826565"
   },
   {
-    "constant": true,
-    "inputs": [
-      {
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "appWhitelist",
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function",
-    "signature": "0xfe2b5de1"
-  },
-  {
     "inputs": [
       {
         "name": "_QOTAddr",
@@ -251,9 +251,13 @@
       {
         "name": "_addr",
         "type": "address"
+      },
+      {
+        "name": "_idx",
+        "type": "uint256"
       }
     ],
-    "name": "addWhitelistApps",
+    "name": "addAppWhitelist",
     "outputs": [
       {
         "name": "",
@@ -263,7 +267,7 @@
     "payable": false,
     "stateMutability": "nonpayable",
     "type": "function",
-    "signature": "0x0d2da680"
+    "signature": "0x858288ce"
   },
   {
     "constant": false,
@@ -271,19 +275,58 @@
       {
         "name": "_addr",
         "type": "address"
+      },
+      {
+        "name": "_idx",
+        "type": "uint256"
       }
     ],
-    "name": "rmWhitelistApps",
+    "name": "replaceAppWhitelist",
     "outputs": [
       {
         "name": "",
-        "type": "bool"
+        "type": "address"
       }
     ],
     "payable": false,
     "stateMutability": "nonpayable",
     "type": "function",
-    "signature": "0xa7f70e73"
+    "signature": "0xd65060a5"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_idx",
+        "type": "uint256"
+      }
+    ],
+    "name": "rmAppWhitelist",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0x6d27f417"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "getAppWhitelist",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address[16]"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x698441f2"
   },
   {
     "constant": false,
@@ -508,6 +551,10 @@
       {
         "name": "",
         "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "bytes32"
       }
     ],
     "payable": false,
