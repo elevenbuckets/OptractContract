@@ -84,11 +84,11 @@ module.exports =
 	{
 		return true;
 	},
-        BlockRegistry_queryOpRoundData_sanity(addr, jobObj)
+        BlockRegistry_queryOpRoundInfo_sanity(addr, jobObj)
 	{
 		return true;
 	},
-        BlockRegistry_queryOpRoundAllData_sanity(addr, jobObj)
+        BlockRegistry_queryOpRoundResult_sanity(addr, jobObj)
 	{
 		return true;
 	},

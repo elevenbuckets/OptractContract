@@ -73,6 +73,8 @@ contract BlockRegistry{
         // prevTimeStamp = block.timestamp - sblockTimeStep;
         blockHistory[0] = blockStat(msg.sender, block.number, 0x0, 0x0, block.timestamp,
                                     0, 0, 0, 0x0);
+        // opRoundHistory[0] = opRoundStruct(0x0000000000000000000000000000000000000000000000000000000000000001,
+        //                                   nowSblockNo, 0, 0x0, 0, 0, 0x0, 0x0);
         nowSblockNo = 1;
     }
 
@@ -438,13 +440,20 @@ contract BlockRegistry{
     }
 
     function queryOpRoundResult(uint _opRound) external view returns (uint, bytes32, uint, uint, bytes32, bytes32, uint, bytes32, uint) {
+        // this function returns default values (0 and 0x0) for current pending opRound
+        // this function is different from other `queryOpRound*()` in that a input of 0 does not mean query current opRound
+        // For opRoundHistory[0], the id is '0x1' and the initBlockNo is the block.height during construction
         uint i;
-        if (_opRound == 0) {
-            i = opRound;
+        uint op;
+        if (_opRound == opRound) {  // return (0, 0x0, 0, 0, 0x0, 0x0, 0, 0x0, 0);
+            op = 0;
+            i = opRound + 2;
+            // 'stack too deep' if return (0, 0x0, ...) here and also return in next else-block!?
         } else {
+            op = _opRound;
             i = _opRound;
         }
-        return (i,
+        return (op,
                 opRoundHistory[i].id,
                 opRoundHistory[i].initBlockNo,
                 opRoundHistory[i].minSuccessRate,
