@@ -11,7 +11,7 @@ module.exports = function(deployer) {
     deployer.deploy(QOT).then( () => {
         return deployer.deploy(MemberShip, QOT.address).then ( (iMemberShip) => {
             return deployer.deploy(BlockRegistry, MemberShip.address).then( ()=>{
-                iMemberShip.addAppWhitelist(BlockRegistry.address);
+                return iMemberShip.addAppWhitelist(BlockRegistry.address, 3);  // 0, 1, 2 are for coreManagers
             })
         })
     })
