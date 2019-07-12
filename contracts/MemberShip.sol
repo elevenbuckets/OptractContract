@@ -13,11 +13,13 @@ contract MemberShip {
     uint public fee = 0.01 ether;
     // uint public memberPeriod = 160000;  // 40000 blocks ~ a week in rinkeby, for test only
     uint public memberPeriod = 30 days;
+    uint public lastMemberCountUpdate;  // use this to prevent too frequent update; see updateActiveMemberCount()
     bool public paused;
     uint public activeMemberCount;  // need to call function to update this value
 
     struct MemberInfo {
         address addr;
+        uint8 tier;  // 8 bit of choices. Default tier is 1; tier>128 are vip (i.e., highest bit is 1). 0 and 128 are not used
         uint since;  // beginning block.timestamp of previous membership
         uint penalty;  // the membership is valid until: since + memberPeriod - penalty;
         bytes32 kycid;  // know your customer id, leave it for future
@@ -26,9 +28,7 @@ contract MemberShip {
 
     mapping (uint => MemberInfo) internal memberDB;  // id to MemberInfo
     mapping (address => uint) internal addressToId;  // address to membership
-
-    mapping (address => bool) internal specialMember;
-    uint public specialMemberBonus = 10000 days;  // value set in constructor
+    uint public vipMemberBonus = 3650 days;
 
     address[16] public appWhitelist;
 
@@ -45,12 +45,12 @@ contract MemberShip {
         QOTAddr = _QOTAddr;
 
         for (uint8 i=0; i<3; i++){
-            _assignMembership(coreManagers[i]);
-            specialMember[coreManagers[i]] = true;
+            _assignMembership(coreManagers[i], 255);
             appWhitelist[i] = coreManagers[i];
         }
         assert(totalId == 3);
         activeMemberCount = 3;  // manually set an initial value
+        lastMemberCountUpdate = block.timestamp;
     }
 
     modifier ownerOnly() {
@@ -80,6 +80,7 @@ contract MemberShip {
 
     modifier isMember() {
         require(msg.sender != address(0));
+        require(addressToId[msg.sender] != 0);
         require(memberDB[addressToId[msg.sender]].since > 0);
         _;
     }
@@ -109,7 +110,7 @@ contract MemberShip {
         _;
     }
 
-    modifier whenPaused {
+    modifier whenPaused() {
         require(paused);
         _;
     }
@@ -117,26 +118,62 @@ contract MemberShip {
     // membership
     function buyMembership() public payable feePaid whenNotPaused returns (bool) {
         require(addressToId[msg.sender] == 0);  // the user is not yet a member
-        _assignMembership(msg.sender);
+        // TODO: uint8 _tier = determineTier(msg.sender); _assignMembership(msg.sender, _tier);
+        _assignMembership(msg.sender, 1);
         return true;
     }
 
-    function _assignMembership(address _addr) internal {
+    function _assignMembership(address _addr, uint8 _tier) internal {
         totalId += 1;  // make it start from 1
         addressToId[_addr] = totalId;
-        memberDB[totalId] = MemberInfo(_addr, block.timestamp, 0, bytes32(0), "");
+        memberDB[totalId] = MemberInfo(_addr, _tier, block.timestamp, 0, bytes32(0), "");
     }
 
     function renewMembership() public payable feePaid whenNotPaused returns (uint) {
         uint _id = addressToId[msg.sender];
         require(msg.sender != address(0) && addressToId[msg.sender] != 0 && memberDB[_id].addr == msg.sender);
         uint _bonus;
-        if (specialMember[memberDB[_id].addr]) {
-            _bonus = specialMemberBonus;
+        if (isVipTier(_id)) {
+            _bonus = vipMemberBonus;
         }
-        require(block.timestamp > memberDB[_id].since + memberPeriod + _bonus - 7 days);
+        require(block.timestamp > idExpireTime(_id) - 7 days);
+
+        // renew membership (and remove vip tier if possible)
         memberDB[_id].since = block.timestamp;
-        return block.timestamp;
+        removeVipTier(_id);
+        return (block.timestamp + memberPeriod + _bonus);  // return expire time
+    }
+
+    function updateTier(uint8 _tier, address _addr) public coreManagerOnly returns(bool){
+        require(addrIsMember(_addr));  // or addrIsActiveMember()?
+        require(_tier != 0 && _tier != 128);  // 0 and 128 are not used
+        // TODO: determine tier base on the amount of QOT the member owns;
+        // Q: Users call this function?
+        // Q: should the sufficient amount of QOT "locked" in a pool for enough time?
+        // Q: Is downgrade tier happen here? Or only while renewMembership()?
+        uint _id = addressToId[_addr];
+        memberDB[_id].tier = _tier;
+        return true;
+    }
+
+    function determineTier(address _addr) public view returns(uint8) {
+        require(addrIsMember(_addr) == true);
+        uint8 tier=1;  // the basic tier
+        // uint _bal = QOTInterface(QOTAddr).balanceOf(_addr);
+        // TODO: depend of _bal and give a tier?
+        return tier;
+    }
+
+    function isVipTier(uint _id) public view returns(bool){
+        return(memberDB[_id].tier > 128);  // tier 128 should not exist
+    }
+
+    function removeVipTier(uint _id) internal returns(uint8) {
+        // don't do any check, assume the _id is already member
+        if (memberDB[_id].tier > 128) {
+            memberDB[_id].tier = memberDB[_id].tier - 128;
+        }
+        return memberDB[_id].tier;
     }
 
     function assginKYCid(uint _id, bytes32 _kycid) external managerOnly returns (bool) {
@@ -164,7 +201,7 @@ contract MemberShip {
     function rmAppWhitelist(uint _idx) public coreManagerOnly returns (address) {
         require(appWhitelist[_idx] != address(0));
         address _addr = appWhitelist[_idx];
-        appWhitelist[_idx] == address(0);
+        delete appWhitelist[_idx];
         return _addr;
     }
 
@@ -174,7 +211,8 @@ contract MemberShip {
 
     function addPenalty(uint _id, uint _penalty) external isAppWhitelist returns (uint) {
         require(memberDB[_id].since > 0);  // is a member
-        // require(_penalty < memberPeriod);  // prevent too much penalty
+        require(_penalty < memberDB[_id].since + memberPeriod);  // prevent overflow while calculate idExpireTime(_id)
+        // require(_penalty < memberPeriod);  // or, can we ban someone for many memberPeriods?
 
         // In case of really large _penalty
         uint expireTime = idExpireTime(_id);
@@ -195,11 +233,6 @@ contract MemberShip {
     function addNotes(uint _id, string calldata _notes) external managerOnly {
         require(memberDB[_id].since > 0);
         memberDB[_id].notes = _notes;
-    }
-
-    function toggleSpeicalMember(address _addr) public coreManagerOnly {  // for test only; should remove in future
-        require(addrIsMember(_addr));
-        specialMember[_addr] = !specialMember[_addr];
     }
 
     // some query functions
@@ -231,8 +264,8 @@ contract MemberShip {
     }
 
     function idExpireTime(uint _id) public view returns (uint) {
-        if (specialMember[memberDB[_id].addr]) {
-            return memberDB[_id].since + memberPeriod - memberDB[_id].penalty + specialMemberBonus;
+        if (isVipTier(_id)) {
+            return memberDB[_id].since + memberPeriod - memberDB[_id].penalty + vipMemberBonus;
         } else {
             return memberDB[_id].since + memberPeriod - memberDB[_id].penalty;
         }
@@ -242,8 +275,7 @@ contract MemberShip {
         return addressToId[_addr];
     }
 
-
-    function getMemberInfo(address _addr) external view returns (uint, bytes32, uint, uint, bytes32){
+    function getMemberInfo(address _addr) external view returns (uint, bytes32, uint8, uint, uint, bytes32){
         uint _id = addressToId[_addr];
         uint status;  // 0=connection error, 1=active, 2=inactive, 3=not member
         if (_id == 0) {
@@ -255,15 +287,21 @@ contract MemberShip {
                 status = 2;
             }
         }
-        return (status, bytes32(_id), memberDB[_id].since, memberDB[_id].penalty, memberDB[_id].kycid);
+        return (status, bytes32(_id), memberDB[_id].tier, memberDB[_id].since, memberDB[_id].penalty, memberDB[_id].kycid);
     }
 
-    function getActiveMemberCount() public view returns (uint){
+    function getActiveMemberCount() public view isMember returns (uint){
         return(activeMemberCount);
     }
 
-    function updateActiveMembers() public isAppWhitelist returns (uint){
-        activeMemberCount = _countActiveMembers();
+    function updateActiveMemberCount(bool _forced) public isAppWhitelist returns (uint){
+        // only update once per _cooldownTime, unless set _forced to true
+        uint _cooldownTime = 24 hours;  // or 12 hours? Is this also sort of grace period when a membership expires?
+        if ((block.timestamp - lastMemberCountUpdate < _cooldownTime && _forced) ||
+            (block.timestamp - lastMemberCountUpdate > _cooldownTime)) {
+            activeMemberCount = _countActiveMembers();
+            lastMemberCountUpdate = block.timestamp;
+        }  // else don't count
         return(activeMemberCount);
     }
 
@@ -291,6 +329,10 @@ contract MemberShip {
         // "managers" can assign KYC id
         require(_addr != address(0));
         managers[_id] = _addr;
+    }
+
+    function getManagers() external view coreManagerOnly returns(address[8] memory) {
+        return managers;
     }
 
     function updateQOTAddr(address _addr) external ownerOnly {

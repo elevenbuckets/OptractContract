@@ -132,7 +132,7 @@ contract BlockRegistry{
         roundVote1Count = 0;
         roundVote2Count = 0;
         articleCount = 0;
-        MemberShipInterface(memberContractAddr).updateActiveMembers();
+        MemberShipInterface(memberContractAddr).updateActiveMemberCount(false);  // note: if too frequent, it will not update unless set 'forced=true'
 
         // update current opRoundHistory
         opRoundHistory[opRound].minSuccessRate = _minSuccessRate;  // next opRound need this
@@ -326,7 +326,7 @@ contract BlockRegistry{
         return merkleTreeValidator(proof, isLeft, txHash, blockHistory[_sblockNo].merkleRoot);
     }
 
-    function claimReward(
+    function claimReward(  // this function is outdated and incomplete
         bytes32[] calldata proof1, bool[] calldata isLeft1, bytes32 txHash1, uint sblockNo1,
         bytes32[] calldata proof2, bool[] calldata isLeft2, bytes32 txHash2, uint sblockNo2
     ) external view returns(bool) {
@@ -334,6 +334,8 @@ contract BlockRegistry{
         require(sblockNo1 > nowSblockNo && sblockNo1 < nowSblockNo + 12);
         // require txHash1 = generateTxHash(msg.sender, ...)
         require(txExist(proof1, isLeft1, txHash1, sblockNo1) && txExist(proof2, isLeft2, txHash2, sblockNo2));
+        // uint _amount = 100;  // should be a global (constant) variable
+        // QOTInterface(QOTAddr).mint(_toAddr, _amount);
     }
 
     // merkle tree and leaves
