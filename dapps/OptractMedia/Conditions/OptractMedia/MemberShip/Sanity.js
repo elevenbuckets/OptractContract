@@ -68,6 +68,10 @@ module.exports =
         {
 		return true;
 	},
+ 	MemberShip_addrExpireTime_sanity(addr, jobObj)
+        {
+		return true;
+	},
  	MemberShip_addrToId_sanity(addr, jobObj)
         {
 		return true;

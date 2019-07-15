@@ -20,8 +20,9 @@ interface MemberShipInterface {
     function idIsMember(uint _id) external view returns (bool);
     function idIsActiveMember(uint _id) external view returns (bool);
     function idExpireTime(uint _id) external view returns (uint);
+    function addrExpireTime(address _addr) external view returns (uint);
     function addrToId(address _addr) external view returns (uint);
-    function getMemberInfo(address _addr) external view returns (uint, bytes32, uint8, uint, uint, bytes32);
+    function getMemberInfo(address _addr) external view returns (uint, bytes32, uint8, uint, uint, uint, bytes32);
     function getActiveMemberCount() external view returns (uint);
     function updateActiveMemberCount(bool _forced) external returns (uint);
     function pause() external;

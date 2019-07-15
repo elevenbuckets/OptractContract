@@ -265,7 +265,21 @@ contract MemberShip {
         }
         uint _expectTime = memberDB[_id].since + memberPeriod + _bonus;
         if (_expectTime > memberDB[_id].penalty) {
-            return _expectTime - memberDB[_id].penalty
+            return _expectTime - memberDB[_id].penalty;
+        } else {
+            return 0;
+        }
+    }
+
+    function addrExpireTime(address _addr) external view returns (uint) {
+        uint _id = addressToId[_addr];
+        uint _bonus;
+        if (isVipTier(_id)) {
+            _bonus = vipMemberBonus;
+        }
+        uint _expectTime = memberDB[_id].since + memberPeriod + _bonus;
+        if (_expectTime > memberDB[_id].penalty) {
+            return _expectTime - memberDB[_id].penalty;
         } else {
             return 0;
         }
@@ -275,9 +289,10 @@ contract MemberShip {
         return addressToId[_addr];
     }
 
-    function getMemberInfo(address _addr) external view returns (uint, bytes32, uint8, uint, uint, bytes32){
+    function getMemberInfo(address _addr) external view returns (uint, bytes32, uint8, uint, uint, uint, bytes32){
         uint _id = addressToId[_addr];
         uint status;  // 0=connection error, 1=active, 2=inactive, 3=not member
+        uint _expireTime = idExpireTime(_id);
         if (_id == 0) {
             status = 3;
         } else {
@@ -287,7 +302,7 @@ contract MemberShip {
                 status = 2;
             }
         }
-        return (status, bytes32(_id), memberDB[_id].tier, memberDB[_id].since, memberDB[_id].penalty, memberDB[_id].kycid);
+        return (status, bytes32(_id), memberDB[_id].tier, memberDB[_id].since, memberDB[_id].penalty, _expireTime, memberDB[_id].kycid);
     }
 
     function getActiveMemberCount() public view isMember returns (uint){
@@ -296,6 +311,9 @@ contract MemberShip {
 
     function updateActiveMemberCount(bool _forced) public isAppWhitelist returns (uint){
         // only update once per _cooldownTime, unless set _forced to true
+        // potential high gas cost: add an argument `uint _memberCount` and let coreManager to update this?
+        //                          in such case coreManager first call view function _countActiveMembers
+        //                          and then call this function
         require(block.timestamp > lastMemberCountUpdate);
         uint _cooldownTime = 24 hours;  // or 12 hours? Is this also sort of grace period when a membership expires?
         if ((block.timestamp - lastMemberCountUpdate < _cooldownTime && _forced) ||
