@@ -12,7 +12,7 @@ contract BlockRegistry{
     address[16] public validators;
     address public memberContractAddr;
     uint public nowSblockNo;  // start from 1
-    uint public sblockTimeStep = 30 minutes;  // it's a minimum timestep
+    uint public sblockTimeStep = 15 minutes;  // it's a minimum timestep
     // bool public opRoundStatus = true;  // need `true` for 1st round; or simply use "pause/unpause"?
     uint public opRound;
     uint public articleCount;
@@ -471,7 +471,7 @@ contract BlockRegistry{
         return (opRound, vote1Threshold, vote2Threshold);
     }
 
-    function queryFinalist(uint _opRound) public view returns(uint, uint, bytes32){
+    function queryFinalist(uint _opRound) external view returns(uint, uint, bytes32){
         uint i;
         if (_opRound == 0) {
             i = opRound;

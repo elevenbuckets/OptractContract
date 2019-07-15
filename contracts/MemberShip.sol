@@ -129,9 +129,8 @@ contract MemberShip {
         memberDB[totalId] = MemberInfo(_addr, _tier, block.timestamp, 0, bytes32(0), "");
     }
 
-    function renewMembership() public payable feePaid whenNotPaused returns (uint) {
+    function renewMembership() public payable feePaid isMember whenNotPaused returns (uint) {
         uint _id = addressToId[msg.sender];
-        require(msg.sender != address(0) && addressToId[msg.sender] != 0 && memberDB[_id].addr == msg.sender);
         uint _bonus;
         if (isVipTier(_id)) {
             _bonus = vipMemberBonus;
@@ -140,11 +139,12 @@ contract MemberShip {
 
         // renew membership (and remove vip tier if possible)
         memberDB[_id].since = block.timestamp;
-        removeVipTier(_id);
+        _removeVipTier(_id);
         return (block.timestamp + memberPeriod + _bonus);  // return expire time
     }
 
     function updateTier(uint8 _tier, address _addr) public coreManagerOnly returns(bool){
+        // should eventually use `determineTier(_addr)` and remove the `_tier` argument
         require(addrIsMember(_addr));  // or addrIsActiveMember()?
         require(_tier != 0 && _tier != 128);  // 0 and 128 are not used
         // TODO: determine tier base on the amount of QOT the member owns;
@@ -168,7 +168,7 @@ contract MemberShip {
         return(memberDB[_id].tier > 128);  // tier 128 should not exist
     }
 
-    function removeVipTier(uint _id) internal returns(uint8) {
+    function _removeVipTier(uint _id) internal returns(uint8) {
         // don't do any check, assume the _id is already member
         if (memberDB[_id].tier > 128) {
             memberDB[_id].tier = memberDB[_id].tier - 128;
@@ -213,14 +213,9 @@ contract MemberShip {
         require(memberDB[_id].since > 0);  // is a member
         require(_penalty < memberDB[_id].since + memberPeriod);  // prevent overflow while calculate idExpireTime(_id)
         // require(_penalty < memberPeriod);  // or, can we ban someone for many memberPeriods?
-
-        // In case of really large _penalty
-        uint expireTime = idExpireTime(_id);
-        if (expireTime > _penalty) {
-            memberDB[_id].penalty += _penalty;
-        } else {
-            memberDB[_id].penalty = expireTime;
-        }
+        // require(_penalty < 3*memberPeriod);
+        // or, only core manager can set a really large _panalty (like 6 months or more) for extreme case
+        memberDB[_id].penalty = _penalty;
 
         return memberDB[_id].penalty;
     }
@@ -255,7 +250,7 @@ contract MemberShip {
     }
 
     function idIsActiveMember(uint _id) public view returns (bool) {
-        require (_id > 0 || memberDB[_id].since > 0);
+        require (_id != 0 || memberDB[_id].since > 0);
         if (idExpireTime(_id) > block.timestamp) {
             return true;  // not yet expire
         } else {
@@ -264,10 +259,15 @@ contract MemberShip {
     }
 
     function idExpireTime(uint _id) public view returns (uint) {
+        uint _bonus;
         if (isVipTier(_id)) {
-            return memberDB[_id].since + memberPeriod - memberDB[_id].penalty + vipMemberBonus;
+            _bonus = vipMemberBonus;
+        }
+        uint _expectTime = memberDB[_id].since + memberPeriod + _bonus;
+        if (_expectTime > memberDB[_id].penalty) {
+            return _expectTime - memberDB[_id].penalty
         } else {
-            return memberDB[_id].since + memberPeriod - memberDB[_id].penalty;
+            return 0;
         }
     }
 
@@ -296,6 +296,7 @@ contract MemberShip {
 
     function updateActiveMemberCount(bool _forced) public isAppWhitelist returns (uint){
         // only update once per _cooldownTime, unless set _forced to true
+        require(block.timestamp > lastMemberCountUpdate);
         uint _cooldownTime = 24 hours;  // or 12 hours? Is this also sort of grace period when a membership expires?
         if ((block.timestamp - lastMemberCountUpdate < _cooldownTime && _forced) ||
             (block.timestamp - lastMemberCountUpdate > _cooldownTime)) {
@@ -323,6 +324,11 @@ contract MemberShip {
     function unpause() public ownerOnly whenPaused {
         // set to ownerOnly in case accounts of other managers are compromised
         paused = false;
+    }
+
+    function updateOwner(address _addr) public ownerOnly {
+        require(addrIsActiveMember(_addr));
+        owner = _addr;
     }
 
     function updateManager(address _addr, uint _id) public coreManagerOnly {
