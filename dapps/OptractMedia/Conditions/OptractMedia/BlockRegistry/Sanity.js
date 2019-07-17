@@ -92,6 +92,10 @@ module.exports =
 	{
 		return true;
 	},
+        BlockRegistry_queryOpRoundProgress_sanity(addr, jobObj)
+	{
+		return true;
+	},
         BlockRegistry_queryFinalist_sanity(addr, jobObj)
 	{
 		return true;

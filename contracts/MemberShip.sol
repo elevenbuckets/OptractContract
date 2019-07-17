@@ -20,6 +20,7 @@ contract MemberShip {
     struct MemberInfo {
         address addr;
         uint8 tier;  // 8 bit of choices. Default tier is 1; tier>128 are vip (i.e., highest bit is 1). 0 and 128 are not used
+                     // Or, use 1-127 as normal user tiers, and the tier +128 are vip user (with longer memberPeriod)
         uint since;  // beginning block.timestamp of previous membership
         uint penalty;  // the membership is valid until: since + memberPeriod - penalty;
         bytes32 kycid;  // know your customer id, leave it for future
@@ -289,7 +290,7 @@ contract MemberShip {
         return addressToId[_addr];
     }
 
-    function getMemberInfo(address _addr) external view returns (uint, bytes32, uint8, uint, uint, uint, bytes32){
+    function getMemberInfo(address _addr) external view returns (uint, bytes32, uint, uint, bytes32, uint8, uint){
         uint _id = addressToId[_addr];
         uint status;  // 0=connection error, 1=active, 2=inactive, 3=not member
         uint _expireTime = idExpireTime(_id);
@@ -302,7 +303,7 @@ contract MemberShip {
                 status = 2;
             }
         }
-        return (status, bytes32(_id), memberDB[_id].tier, memberDB[_id].since, memberDB[_id].penalty, _expireTime, memberDB[_id].kycid);
+        return (status, bytes32(_id), memberDB[_id].since, memberDB[_id].penalty, memberDB[_id].kycid, memberDB[_id].tier, _expireTime);
     }
 
     function getActiveMemberCount() public view isMember returns (uint){

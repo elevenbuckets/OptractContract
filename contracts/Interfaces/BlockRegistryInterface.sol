@@ -35,6 +35,7 @@ interface BlockRegistryInterface {
     function queryOpRoundLottery(uint _opRound) external view returns (uint, uint, bytes32);
     function queryOpRoundInfo(uint _opRound) external view returns (uint, bytes32, uint);
     function queryOpRoundResult(uint _opRound) external view returns (uint, bytes32, uint, uint, bytes32, bytes32, uint, bytes32, uint);
+    function queryOpRoundProgress() external view returns (uint, bool, uint, uint, uint, uint);
     function queryVoteThresholds() external view returns(uint, uint, uint);
     function queryFinalist(uint _opRound) external view returns(uint, uint, bytes32);
     function setValidator(address _newValidator, uint _idx) external returns (bool);

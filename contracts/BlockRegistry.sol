@@ -171,7 +171,6 @@ contract BlockRegistry{
         require(blockHistory[nowSblockNo].blockHeight == 0 && blockHistory[nowSblockNo].merkleRoot == 0x0 &&
                 blockHistory[nowSblockNo].ipfsAddr == 0x0 && blockHistory[nowSblockNo].timestamp == 0);
         require(_minSuccessRate >= 0 && _minSuccessRate < 100);  // need the equal for genesis round
-        require(_successRateDB != 0x0);
         // require: ...
 
         // a sblock in a opRound cound be of type: genesis, lottery, lottery-NDR, finalist, finalist-NDR, or regular
@@ -206,7 +205,7 @@ contract BlockRegistry{
             // opRoundHistory[opRound].lotteryBlockNo = nowSblockNo;  // should keep it 0
             _toNextOpRound(_merkleRoot, 0, 0, 0x0, 0x0);
         } else if (opRound != 0 && atV1 == false && isEnoughV2(roundVote2Count+_vote2Count)) { // finalist
-            require(_finalListIpfs != 0x0);
+            require(_finalListIpfs != 0x0 && _successRateDB != 0x0);
             require(_baseline >= 1);  // what else reasonable value?
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp,
@@ -216,6 +215,7 @@ contract BlockRegistry{
             v2EndTime = block.timestamp;
             _toNextOpRound(_merkleRoot, _minSuccessRate, _baseline, _successRateDB, _finalListIpfs);
         } else if (opRound != 0 && atV1 == false && (block.timestamp - v1EndTime > maxVoteTime)) {  // too long! End this Opround-v2 and proceed to next OpRound
+            require(_finalListIpfs != 0x0 && _successRateDB != 0x0);
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp,
                 _uniqArticleCount, _vote1Count, _vote2Count, opRoundHistory[opRound].id
@@ -441,7 +441,7 @@ contract BlockRegistry{
         return (i, opRoundHistory[i].id, opRoundHistory[i].initBlockNo);
     }
 
-    function queryOpRoundResult(uint _opRound) external view returns (uint, bytes32, uint, uint, bytes32, bytes32, uint, bytes32, uint) {
+    function queryOpRoundResult(uint _opRound) external view returns (uint, bytes32, uint, uint8, bytes32, bytes32, uint, bytes32, uint) {
         // this function returns default values (0 and 0x0) for current pending opRound
         // this function is different from other `queryOpRound*()` in that a input of 0 does not mean query current opRound
         // For opRoundHistory[0], the id is '0x1' and the initBlockNo is the block.height during construction
@@ -465,6 +465,10 @@ contract BlockRegistry{
                 opRoundHistory[i].lotteryWinNumber,
                 opRoundHistory[i].baseline
                );
+    }
+
+    function queryOpRoundProgress() external view returns (uint, bool, uint, uint, uint, uint) {
+        return(articleCount, atV1, v1EndTime, v2EndTime, roundVote1Count, roundVote2Count);
     }
 
     function queryVoteThresholds() external view returns(uint, uint, uint) {
