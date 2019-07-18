@@ -312,10 +312,11 @@ contract BlockRegistry{
     }
 
     function isWinningTicket(uint _opRound, bytes32 _ticket) public view returns(bool, uint8) {
+        // TODO: add all merkle validation arguments in order to verify the txHash is BEFORE the lottery
         require(_opRound >= opRound && opRoundHistory[_opRound].lotteryWinNumber != 0x0);
         bytes32 winHex = opRoundHistory[_opRound].lotteryWinNumber;
         // note: the minSuccessRate for this opRound is determined in previous opRound!
-        // TODO: add a toggle (global var or parameter to this function) to use another lotteryWins() rule
+        // TODO: How about add a toggle (global var or parameter to this function) to use another lotteryWins() rule
         return (lotteryWins(winHex, _ticket), opRoundHistory[_opRound-1].minSuccessRate);
     }
 

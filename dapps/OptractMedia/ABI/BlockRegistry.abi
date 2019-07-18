@@ -873,7 +873,7 @@
       },
       {
         "name": "",
-        "type": "uint256"
+        "type": "uint8"
       },
       {
         "name": "",
@@ -900,6 +900,41 @@
     "stateMutability": "view",
     "type": "function",
     "signature": "0xf47dae9a"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "queryOpRoundProgress",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "bool"
+      },
+      {
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x2656de1a"
   },
   {
     "constant": true,

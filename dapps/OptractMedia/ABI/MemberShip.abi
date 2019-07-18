@@ -2,7 +2,7 @@
   {
     "constant": true,
     "inputs": [],
-    "name": "specialMemberBonus",
+    "name": "vipMemberBonus",
     "outputs": [
       {
         "name": "",
@@ -12,7 +12,7 @@
     "payable": false,
     "stateMutability": "view",
     "type": "function",
-    "signature": "0x05d104f2"
+    "signature": "0x19c944bb"
   },
   {
     "constant": true,
@@ -28,6 +28,21 @@
     "stateMutability": "view",
     "type": "function",
     "signature": "0x21a8770d"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "lastMemberCountUpdate",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x24633212"
   },
   {
     "constant": true,
@@ -225,6 +240,70 @@
     "constant": false,
     "inputs": [
       {
+        "name": "_tier",
+        "type": "uint8"
+      },
+      {
+        "name": "_addr",
+        "type": "address"
+      }
+    ],
+    "name": "updateTier",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0x30bbe91b"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_addr",
+        "type": "address"
+      }
+    ],
+    "name": "determineTier",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xfdd9052b"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_id",
+        "type": "uint256"
+      }
+    ],
+    "name": "isVipTier",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x9e7151ff"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
         "name": "_id",
         "type": "uint256"
       },
@@ -392,21 +471,6 @@
     "signature": "0xd9ed28b7"
   },
   {
-    "constant": false,
-    "inputs": [
-      {
-        "name": "_addr",
-        "type": "address"
-      }
-    ],
-    "name": "toggleSpeicalMember",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function",
-    "signature": "0x3c58aa94"
-  },
-  {
     "constant": true,
     "inputs": [
       {
@@ -514,6 +578,26 @@
         "type": "address"
       }
     ],
+    "name": "addrExpireTime",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x32de3509"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_addr",
+        "type": "address"
+      }
+    ],
     "name": "addrToId",
     "outputs": [
       {
@@ -555,6 +639,14 @@
       {
         "name": "",
         "type": "bytes32"
+      },
+      {
+        "name": "",
+        "type": "uint8"
+      },
+      {
+        "name": "",
+        "type": "uint256"
       }
     ],
     "payable": false,
@@ -579,8 +671,13 @@
   },
   {
     "constant": false,
-    "inputs": [],
-    "name": "updateActiveMembers",
+    "inputs": [
+      {
+        "name": "_forced",
+        "type": "bool"
+      }
+    ],
+    "name": "updateActiveMemberCount",
     "outputs": [
       {
         "name": "",
@@ -590,7 +687,7 @@
     "payable": false,
     "stateMutability": "nonpayable",
     "type": "function",
-    "signature": "0xc5bc3861"
+    "signature": "0x47bda3d9"
   },
   {
     "constant": false,
@@ -618,6 +715,21 @@
       {
         "name": "_addr",
         "type": "address"
+      }
+    ],
+    "name": "updateOwner",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0x880cdc31"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_addr",
+        "type": "address"
       },
       {
         "name": "_id",
@@ -630,6 +742,21 @@
     "stateMutability": "nonpayable",
     "type": "function",
     "signature": "0xd8de1066"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "getManagers",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address[8]"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xa8d088bb"
   },
   {
     "constant": false,
