@@ -57,6 +57,7 @@ contract BlockRegistry{
     mapping (bytes32 => uint) opRoundIdToNum;  // opRound id to opRound number
     // mapping (uint => uint) public lotterySblockNo;  // give `opRound`, return the corresponding `sblock_no` while lottery happened
     // mapping (uint => bytes32) public opRoundLog;  // opRound index to opRound id
+    mapping (uint => mapping(address => bool)) opRoundClaimed;
 
     constructor(address _memberContractAddr) public {
         memberContractAddr = _memberContractAddr;
@@ -327,15 +328,35 @@ contract BlockRegistry{
         return merkleTreeValidator(proof, isLeft, txHash, blockHistory[_sblockNo].merkleRoot);
     }
 
-    function claimReward(  // this function is outdated and incomplete
-        bytes32[] calldata proof1, bool[] calldata isLeft1, bytes32 txHash1, uint sblockNo1,
-        bytes32[] calldata proof2, bool[] calldata isLeft2, bytes32 txHash2, uint sblockNo2
+    function verifySignature(address _signer, bytes32 _msg, uint8 _v, bytes32 _r, bytes32 _s) public pure returns(bool){
+        // Looks like the default prefix (of ethereum) is not used; should we introduce our own prefix?
+        // bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        // bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, _msg));
+        // address signer = ecrecover(prefixedHash, _v, _r, _s);
+        address signer = ecrecover(_msg, _v, _r, _s);
+        return _signer == signer;
+    }
+
+    function claimReward(
+        uint _opRound, bytes32[] calldata proof, bool[] calldata isLeft, bytes32 txHash, uint sblockNo,
     ) external view returns(bool) {
-        // need to proof both articles are in the tree and both submitted by the msg.sender (using calcLeaf() below)
-        require(sblockNo1 > nowSblockNo && sblockNo1 < nowSblockNo + 12);
-        // require txHash1 = generateTxHash(msg.sender, ...)
+        // requirements:
+        // * the txHash is in the tree
+        // * the txHash happen before the lottery round of that _opRound
+        // * the txHash is submitted by the msg.sender
+        //   - is "verifySignature()" enough? Can the "_msg" in verifySignature() related to this txHash?
+        //   - alternatively, use the following to verify txHash: [msg.sender, opround, aid, v1block, v1leaf, v2block, v2leaf, since, ...]
+        // * require(isWinningTicket(opround, txHash))  <-- although validator checked, should check here anyway
+        // * current time is not too far from sblockNo (how far is acceptable?)
+        //   - can the "_opRound" easily calculated from "sblockNo"?
+        //   - or, if no "_opRound" as input argument, only check recent N opRound, if the "sblockNo" is still
+        //     earlier than the opRoundHistory[opRound-N].blockHeight, then reject. N should between 1 and 5, or?
+        // * require(opRoundClaimed[opRound][msg.sender] == false, "Only one claim per opRound");
+
         require(txExist(proof1, isLeft1, txHash1, sblockNo1) && txExist(proof2, isLeft2, txHash2, sblockNo2));
-        // uint _amount = 100;  // should be a global (constant) variable
+
+        opRoundClaimed[opRound][msg.sender] = true;
+        // uint _amount = 100;  // should be a global (constant) variable. Or fix a value in QOT
         // QOTInterface(QOTAddr).mint(_toAddr, _amount);
     }
 
