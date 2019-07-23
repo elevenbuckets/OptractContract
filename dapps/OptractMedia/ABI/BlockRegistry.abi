@@ -584,39 +584,27 @@
     "constant": true,
     "inputs": [
       {
-        "name": "proof1",
-        "type": "bytes32[]"
+        "name": "_signer",
+        "type": "address"
       },
       {
-        "name": "isLeft1",
-        "type": "bool[]"
-      },
-      {
-        "name": "txHash1",
+        "name": "_msg",
         "type": "bytes32"
       },
       {
-        "name": "sblockNo1",
-        "type": "uint256"
+        "name": "_v",
+        "type": "uint8"
       },
       {
-        "name": "proof2",
-        "type": "bytes32[]"
-      },
-      {
-        "name": "isLeft2",
-        "type": "bool[]"
-      },
-      {
-        "name": "txHash2",
+        "name": "_r",
         "type": "bytes32"
       },
       {
-        "name": "sblockNo2",
-        "type": "uint256"
+        "name": "_s",
+        "type": "bytes32"
       }
     ],
-    "name": "claimReward",
+    "name": "verifySignature",
     "outputs": [
       {
         "name": "",
@@ -624,9 +612,9 @@
       }
     ],
     "payable": false,
-    "stateMutability": "view",
+    "stateMutability": "pure",
     "type": "function",
-    "signature": "0x09c7a12c"
+    "signature": "0x02bf9e7f"
   },
   {
     "constant": true,

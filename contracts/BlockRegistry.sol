@@ -337,28 +337,28 @@ contract BlockRegistry{
         return _signer == signer;
     }
 
-    function claimReward(
-        uint _opRound, bytes32[] calldata proof, bool[] calldata isLeft, bytes32 txHash, uint sblockNo,
-    ) external view returns(bool) {
-        // requirements:
-        // * the txHash is in the tree
-        // * the txHash happen before the lottery round of that _opRound
-        // * the txHash is submitted by the msg.sender
-        //   - is "verifySignature()" enough? Can the "_msg" in verifySignature() related to this txHash?
-        //   - alternatively, use the following to verify txHash: [msg.sender, opround, aid, v1block, v1leaf, v2block, v2leaf, since, ...]
-        // * require(isWinningTicket(opround, txHash))  <-- although validator checked, should check here anyway
-        // * current time is not too far from sblockNo (how far is acceptable?)
-        //   - can the "_opRound" easily calculated from "sblockNo"?
-        //   - or, if no "_opRound" as input argument, only check recent N opRound, if the "sblockNo" is still
-        //     earlier than the opRoundHistory[opRound-N].blockHeight, then reject. N should between 1 and 5, or?
-        // * require(opRoundClaimed[opRound][msg.sender] == false, "Only one claim per opRound");
+    // function claimReward(
+    //     uint _opRound, bytes32[] calldata proof, bool[] calldata isLeft, bytes32 txHash, uint sblockNo
+    // ) external view returns(bool) {
+    //     // requirements:
+    //     // * the txHash is in the tree
+    //     // * the txHash happen before the lottery round of that _opRound
+    //     // * the txHash is submitted by the msg.sender
+    //     //   - is "verifySignature()" enough? Can the "_msg" in verifySignature() related to this txHash?
+    //     //   - alternatively, use the following to verify txHash: [msg.sender, opround, aid, v1block, v1leaf, v2block, v2leaf, since, ...]
+    //     // * require(isWinningTicket(opround, txHash))  <-- although validator checked, should check here anyway
+    //     // * current time is not too far from sblockNo (how far is acceptable?)
+    //     //   - can the "_opRound" easily calculated from "sblockNo"?
+    //     //   - or, if no "_opRound" as input argument, only check recent N opRound, if the "sblockNo" is still
+    //     //     earlier than the opRoundHistory[opRound-N].blockHeight, then reject. N should between 1 and 5, or?
+    //     // * require(opRoundClaimed[opRound][msg.sender] == false, "Only one claim per opRound");
 
-        require(txExist(proof1, isLeft1, txHash1, sblockNo1) && txExist(proof2, isLeft2, txHash2, sblockNo2));
+    //     // require(txExist(proof1, isLeft1, txHash1, sblockNo1) && txExist(proof2, isLeft2, txHash2, sblockNo2));
 
-        opRoundClaimed[opRound][msg.sender] = true;
-        // uint _amount = 100;  // should be a global (constant) variable. Or fix a value in QOT
-        // QOTInterface(QOTAddr).mint(_toAddr, _amount);
-    }
+    //     opRoundClaimed[opRound][msg.sender] = true;
+    //     // uint _amount = 100;  // should be a global (constant) variable. Or fix a value in QOT
+    //     // QOTInterface(QOTAddr).mint(_toAddr, _amount);
+    // }
 
     // merkle tree and leaves
     function merkleTreeValidator(
