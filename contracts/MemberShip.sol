@@ -306,7 +306,7 @@ contract MemberShip {
         return (status, bytes32(_id), memberDB[_id].since, memberDB[_id].penalty, memberDB[_id].kycid, memberDB[_id].tier, _expireTime);
     }
 
-    function getActiveMemberCount() public view isMember returns (uint){
+    function getActiveMemberCount() public view returns (uint){
         return(activeMemberCount);
     }
 

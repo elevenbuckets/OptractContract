@@ -165,8 +165,8 @@ contract BlockRegistry{
         //       (v2) may not happen if (v1) takes more than maxVoteTime.
         // comment some "require"s for test purpose
         // require(block.timestamp >= blockHistory[nowSblockNo] + sblockTimeStep, 'too soon');
-        require(block.timestamp >= blockHistory[nowSblockNo].timestamp + 2 minutes);  // 2 min is for test purpose, should be 1 hour(?)
-        require(block.number >= blockHistory[nowSblockNo].blockHeight + 5);  // 5 is for test purpose, should be ?
+        require(block.timestamp >= blockHistory[nowSblockNo-1].timestamp + 2 minutes);  // 2 min is for test purpose, should be 1 hour(?)
+        require(block.number >= blockHistory[nowSblockNo-1].blockHeight + 5);  // 5 is for test purpose, should be ?
         require(_merkleRoot != 0x0 && _ipfsAddr != 0x0);
         require(blockHistory[nowSblockNo-1].merkleRoot != _merkleRoot && blockHistory[nowSblockNo-1].ipfsAddr != _ipfsAddr);  // prevent re-submission
         require(blockHistory[nowSblockNo].blockHeight == 0 && blockHistory[nowSblockNo].merkleRoot == 0x0 &&
