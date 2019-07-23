@@ -25,7 +25,7 @@ contract BlockRegistry{
     uint public v2EndTime;
     bool public atV1;
 
-    uint public maxVoteTime = 180 minutes;  // an Opround cannot longer than 2*maxVoteTime; use smaller values for debug
+    uint public maxVoteTime = 15 minutes;  // an Opround cannot longer than 2*maxVoteTime; use small values for debug
 
     struct blockStat{
         address validator;
@@ -183,6 +183,21 @@ contract BlockRegistry{
             );
             v2EndTime = block.timestamp;  // although no 'claiming', still need to record a time
             _toNextOpRound(_merkleRoot, 0, 0, 0x0, 0x0);
+        } else if (opRound != 0 && atV1 && (block.timestamp - v2EndTime > maxVoteTime)) {  // A "no-draw-round"! Proceed to next OpRound
+            // TODO: uncomment following lines?
+            // require(minSuccessRate == opRoundHistory[opRound-1].minSuccessRate);
+            // require(_baseline == 0);
+            // require(_finalListIpfs == '0x0');
+            // require(_successRateDB == opRoundHistory[opRound-1].succesRateDB);
+            blockHistory[nowSblockNo] = blockStat(
+                msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp,
+                _uniqArticleCount, _vote1Count, _vote2Count, opRoundHistory[opRound].id
+            );
+            v1EndTime = block.timestamp-1;  // or don't update? BTW, subtract by 1 to make sure v2EndTime > v1Endtime (or no need?)
+            v2EndTime = block.timestamp;  // in case next submit() fall into this if-statement again
+            vote1Threshold = _decreaseThreshold(vote1Threshold);
+            // opRoundHistory[opRound].lotteryBlockNo = nowSblockNo;  // should keep it 0
+            _toNextOpRound(_merkleRoot, _minSuccessRate, _baseline, _successRateDB, _finalListIpfs);
         } else if (opRound != 0 && atV1 && isEnoughV1(roundVote1Count+_vote1Count)) {  // lottery
             require(opRoundHistory[opRound].lotteryBlockNo == 0 && opRoundHistory[opRound].lotteryWinNumber == 0x0);
             blockHistory[nowSblockNo] = blockStat(
@@ -195,16 +210,20 @@ contract BlockRegistry{
             opRoundHistory[opRound].lotteryWinNumber = calcLotteryWinNumber(_merkleRoot, blockhash(block.number-1));
             roundVote2Count = 0;  // should be 0 already but reset anyway
             atV1 = false;
-        } else if (opRound != 0 && atV1 && (block.timestamp - v2EndTime > maxVoteTime)) {  // A "no-draw-round"! Proceed to next OpRound
+        } else if (opRound != 0 && atV1 == false && (block.timestamp - v1EndTime > maxVoteTime)) {  // too long! End this Opround-v2 and proceed to next OpRound
+            // TODO: uncomment following lines?
+            // require(minSuccessRate == opRoundHistory[opRound-1].minSuccessRate);
+            // require(_baseline == 0);
+            // require(_finalListIpfs == '0x0');
+            // require(_successRateDB == opRoundHistory[opRound-1].succesRateDB);
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp,
                 _uniqArticleCount, _vote1Count, _vote2Count, opRoundHistory[opRound].id
             );
-            v1EndTime = block.timestamp-1;  // or don't update? BTW, subtract by 1 to make sure v2EndTime > v1Endtime (or no need?)
-            v2EndTime = block.timestamp;  // in case next submit() fall into this if-statement again
-            vote1Threshold = _decreaseThreshold(vote1Threshold);
-            // opRoundHistory[opRound].lotteryBlockNo = nowSblockNo;  // should keep it 0
-            _toNextOpRound(_merkleRoot, 0, 0, 0x0, 0x0);
+            vote2Threshold = _decreaseThreshold(vote2Threshold);
+            v2EndTime = block.timestamp;
+            // should validator update new _successRateDB in NDR? should _baseline and finalListIpfs have values?
+            _toNextOpRound(_merkleRoot, _minSuccessRate, _baseline, _successRateDB, _finalListIpfs);
         } else if (opRound != 0 && atV1 == false && isEnoughV2(roundVote2Count+_vote2Count)) { // finalist
             // require(_finalListIpfs != 0x0 && _successRateDB != 0x0);
             require(_baseline >= 1);  // what else reasonable value?
@@ -215,16 +234,6 @@ contract BlockRegistry{
             vote2Threshold = _increaseThreshold(vote2Threshold);
             v2EndTime = block.timestamp;
             _toNextOpRound(_merkleRoot, _minSuccessRate, _baseline, _successRateDB, _finalListIpfs);
-        } else if (opRound != 0 && atV1 == false && (block.timestamp - v1EndTime > maxVoteTime)) {  // too long! End this Opround-v2 and proceed to next OpRound
-            require(_finalListIpfs != 0x0 && _successRateDB != 0x0);
-            blockHistory[nowSblockNo] = blockStat(
-                msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp,
-                _uniqArticleCount, _vote1Count, _vote2Count, opRoundHistory[opRound].id
-            );  
-            vote2Threshold = _decreaseThreshold(vote2Threshold);
-            v2EndTime = block.timestamp;
-            // should validator update new _successRateDB in NDR? should _baseline and finalListIpfs have values?
-            _toNextOpRound(_merkleRoot, _minSuccessRate, 0, _successRateDB, 0x0);
         } else {  // regular sblock, only accumulate votes
             roundVote1Count += _vote1Count;
             roundVote2Count += _vote2Count;
