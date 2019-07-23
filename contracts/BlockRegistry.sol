@@ -206,7 +206,7 @@ contract BlockRegistry{
             // opRoundHistory[opRound].lotteryBlockNo = nowSblockNo;  // should keep it 0
             _toNextOpRound(_merkleRoot, 0, 0, 0x0, 0x0);
         } else if (opRound != 0 && atV1 == false && isEnoughV2(roundVote2Count+_vote2Count)) { // finalist
-            require(_finalListIpfs != 0x0 && _successRateDB != 0x0);
+            // require(_finalListIpfs != 0x0 && _successRateDB != 0x0);
             require(_baseline >= 1);  // what else reasonable value?
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp,
