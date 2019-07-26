@@ -24,7 +24,7 @@ contract BlockRegistry{
     uint public v1EndTime;
     uint public v2EndTime;
     bool public atV1;
-    uint8 public numRange = 5;  // it means pick x out of 16 numbers; should eventually make it constant
+    uint8 public numRange = 8;  // it means pick x out of 16 numbers; should eventually make it constant
 
     uint public maxVoteTime = 15 minutes;  // an Opround cannot longer than 2*maxVoteTime; use small values for debug
 
@@ -314,6 +314,11 @@ contract BlockRegistry{
         require(_opRound >= opRound && opRoundHistory[_opRound].lotteryWinNumber != 0x0);
         bytes32 winHex = opRoundHistory[_opRound].lotteryWinNumber;
         return lotteryWins(winHex, _ticket, numRange);
+    }
+
+    function setNumRange(uint8 _numRange) public managerOnly {  // for test only
+        require(_numRange >= 1 && _numRange <=15);
+        numRange = _numRange;
     }
 
     function isWinningTicket(uint _opRound, bytes32 _ticket) public view returns(bool, uint8) {
