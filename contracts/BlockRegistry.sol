@@ -321,13 +321,16 @@ contract BlockRegistry{
         }
     }
 
-    function isWinningTicket(uint _opRound, bytes32 _ticket) public view returns(bool, uint8) {
-        // TODO: add all merkle validation arguments in order to verify the txHash is BEFORE the lottery
+    function _isWinningTicket(uint _opRound, bytes32 _ticket) internal view returns(bool) {
         require(_opRound >= opRound && opRoundHistory[_opRound].lotteryWinNumber != 0x0);
         bytes32 winHex = opRoundHistory[_opRound].lotteryWinNumber;
+        return lotteryWins(winHex, _ticket);
+    }
+
+    function isWinningTicket(uint _opRound, bytes32 _ticket) public view returns(bool, uint8) {
+        // TODO: add all merkle validation arguments in order to verify the txHash is BEFORE the lottery
         // note: the minSuccessRate for this opRound is determined in previous opRound!
-        // TODO: How about add a toggle (global var or parameter to this function) to use another lotteryWins() rule
-        return (lotteryWins(winHex, _ticket), opRoundHistory[_opRound-1].minSuccessRate);
+        return (_isWinningTicket(_opRound, _ticket), opRoundHistory[_opRound-1].minSuccessRate);
     }
 
     // claim reward
@@ -346,28 +349,37 @@ contract BlockRegistry{
         return _signer == signer;
     }
 
-    // function claimReward(
-    //     uint _opRound, bytes32[] calldata proof, bool[] calldata isLeft, bytes32 txHash, uint sblockNo
-    // ) external view returns(bool) {
-    //     // requirements:
-    //     // * the txHash is in the tree
-    //     // * the txHash happen before the lottery round of that _opRound
-    //     // * the txHash is submitted by the msg.sender
-    //     //   - is "verifySignature()" enough? Can the "_msg" in verifySignature() related to this txHash?
-    //     //   - alternatively, use the following to verify txHash: [msg.sender, opround, aid, v1block, v1leaf, v2block, v2leaf, since, ...]
-    //     // * require(isWinningTicket(opround, txHash))  <-- although validator checked, should check here anyway
-    //     // * current time is not too far from sblockNo (how far is acceptable?)
-    //     //   - can the "_opRound" easily calculated from "sblockNo"?
-    //     //   - or, if no "_opRound" as input argument, only check recent N opRound, if the "sblockNo" is still
-    //     //     earlier than the opRoundHistory[opRound-N].blockHeight, then reject. N should between 1 and 5, or?
-    //     // * require(opRoundClaimed[opRound][msg.sender] == false, "Only one claim per opRound");
+    function claimReward(
+        uint _opRound, bytes32[] calldata proof, bool[] calldata isLeft, bytes32 txHash, uint _sblockNo
+    ) external returns(bool) {
+        // requirements:
+        // * the txHash is in the tree
+        // * the txHash happen before the lottery round of that _opRound
+        // * the txHash is submitted by the msg.sender
+        //   - is "verifySignature()" enough? Can the "_msg" in verifySignature() related to this txHash?
+        //   - alternatively, use the following to verify txHash: [msg.sender, opround, aid, v1block, v1leaf, v2block, v2leaf, since, ...]
+        // * require(isWinningTicket(opround, txHash))
+        // * current time is not too far from sblockNo (how far is acceptable?)
+        //   - can the "_opRound" easily calculated from "sblockNo"?
+        //   - or, if no "_opRound" as input argument, only check recent N opRound, if the "sblockNo" is still
+        //     earlier than the opRoundHistory[opRound-N].blockHeight, then reject. N should between 1 and 5, or?
+        // * require(opRoundClaimed[opRound][msg.sender] == false, "Only one claim per opRound");
+        require(_sblockNo <= opRoundHistory[_opRound].lotteryBlockNo);
+        require(txExist(proof, isLeft, txHash, _sblockNo));
+        // how to proof the txhash is from this msg.sender?
+        // require(
+        require(_isWinningTicket(_opRound, txHash));
+        require(_opRound == opRound || _opRound == opRound + 1);  // or only in same opRound?
+        require(opRoundClaimed[_opRound][msg.sender] == false, "An account can only claim once per opRound");
+        // bool _win;
+        // uint _msr;
+        // (_win, _msr) = isWinningTicket(_opRound, txHash);
+        // require(_win);
 
-    //     // require(txExist(proof1, isLeft1, txHash1, sblockNo1) && txExist(proof2, isLeft2, txHash2, sblockNo2));
-
-    //     opRoundClaimed[opRound][msg.sender] = true;
-    //     // uint _amount = 100;  // should be a global (constant) variable. Or fix a value in QOT
-    //     // QOTInterface(QOTAddr).mint(_toAddr, _amount);
-    // }
+        opRoundClaimed[opRound][msg.sender] = true;
+        // uint _amount = 100;  // should be a global (constant) variable. Or fix a value in QOT
+        // QOTInterface(QOTAddr).mint(_toAddr, _amount);
+    }
 
     // merkle tree and leaves
     function merkleTreeValidator(

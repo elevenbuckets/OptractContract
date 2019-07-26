@@ -617,6 +617,42 @@
     "signature": "0x02bf9e7f"
   },
   {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_opRound",
+        "type": "uint256"
+      },
+      {
+        "name": "proof",
+        "type": "bytes32[]"
+      },
+      {
+        "name": "isLeft",
+        "type": "bool[]"
+      },
+      {
+        "name": "txHash",
+        "type": "bytes32"
+      },
+      {
+        "name": "_sblockNo",
+        "type": "uint256"
+      }
+    ],
+    "name": "claimReward",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0xf3297aa3"
+  },
+  {
     "constant": true,
     "inputs": [
       {
