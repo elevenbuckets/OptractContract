@@ -24,6 +24,7 @@ contract BlockRegistry{
     uint public v1EndTime;
     uint public v2EndTime;
     bool public atV1;
+    uint8 public numRange = 5;  // it means pick x out of 16 numbers; should eventually make it constant
 
     uint public maxVoteTime = 15 minutes;  // an Opround cannot longer than 2*maxVoteTime; use small values for debug
 
@@ -286,29 +287,17 @@ contract BlockRegistry{
         }
     }
 
-    function lotteryWins(bytes32 _winHex, bytes32 _ticket) public pure returns(bool) {
-        // a ticket is a winning ticket if: it's X-th digit (count from behind) is Y
+    function lotteryWins(bytes32 _winHex, bytes32 _ticket, uint8 _numRange) public pure returns(bool) {
+        // NOTE: in real product, should either record _numRange or make it constant
+        // Rule: A ticket wins if: it's X-th digit (count from behind) is Y
         // where `X` is determined by first digit of `lotteryWinNumber` (in the range of 0 and 3)
         // and `Y` is the last digit of `winHex`
         // the rule of determining `X` and `Y` should sync with 'libSampleTicket.js' in 'OptractP2PCli'
-        uint8 refDigit = uint8(_getBytes32HexNthDigit(_winHex, 0)) % 4;
-        bytes1 winHexChar1 = _getBytes32HexNthDigit(_winHex, 63);  // last digit
-        bytes1 winHexChar2 = bytes1((uint8(winHexChar1) + 1) % 16);
-        bytes1 winHexChar3 = bytes1((uint8(winHexChar2) + 1) % 16);
-        bytes1 winHexChar4 = bytes1((uint8(winHexChar3) + 1) % 16);
-        bytes1 ticketChar = _getBytes32HexNthDigit(_ticket, 63 - refDigit);
-        if (ticketChar == winHexChar1 || ticketChar == winHexChar2 || ticketChar == winHexChar3 || ticketChar == winHexChar4) {
-            return true;
-        }
-    }
-
-    function lotteryWins8(bytes32 _winHex, bytes32 _ticket) public pure returns(bool) {
-        // similar to lotteryWins, just increase the rate to 50%!
-        // TODO: some real tests
+        require(_numRange >= 1 && _numRange <= 16);
         uint8 refDigit = uint8(_getBytes32HexNthDigit(_winHex, 0)) % 4;
         bytes1 winHexChar1 = _getBytes32HexNthDigit(_winHex, 63);  // last digit
         uint8 w1 = uint8(winHexChar1);
-        uint8 w2 = (w1 + 8) % 16;
+        uint8 w2 = (w1 + _numRange) % 16;
         uint8 t = uint8(_getBytes32HexNthDigit(_ticket, 63 - refDigit));
         if (w2 > w1)  {
             if (t >= w1 && t < w2) {
@@ -324,12 +313,11 @@ contract BlockRegistry{
     function _isWinningTicket(uint _opRound, bytes32 _ticket) internal view returns(bool) {
         require(_opRound >= opRound && opRoundHistory[_opRound].lotteryWinNumber != 0x0);
         bytes32 winHex = opRoundHistory[_opRound].lotteryWinNumber;
-        return lotteryWins(winHex, _ticket);
+        return lotteryWins(winHex, _ticket, numRange);
     }
 
     function isWinningTicket(uint _opRound, bytes32 _ticket) public view returns(bool, uint8) {
         // TODO: add all merkle validation arguments in order to verify the txHash is BEFORE the lottery
-        // note: the minSuccessRate for this opRound is determined in previous opRound!
         return (_isWinningTicket(_opRound, _ticket), opRoundHistory[_opRound-1].minSuccessRate);
     }
 
