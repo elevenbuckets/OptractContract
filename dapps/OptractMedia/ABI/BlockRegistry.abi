@@ -102,6 +102,21 @@
   {
     "constant": true,
     "inputs": [],
+    "name": "numRange",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x5080ad26"
+  },
+  {
+    "constant": true,
+    "inputs": [],
     "name": "roundVote2Count",
     "outputs": [
       {
@@ -482,6 +497,10 @@
       {
         "name": "_ticket",
         "type": "bytes32"
+      },
+      {
+        "name": "_numRange",
+        "type": "uint8"
       }
     ],
     "name": "lotteryWins",
@@ -494,31 +513,22 @@
     "payable": false,
     "stateMutability": "pure",
     "type": "function",
-    "signature": "0x802ddfd2"
+    "signature": "0x1b9d40ba"
   },
   {
-    "constant": true,
+    "constant": false,
     "inputs": [
       {
-        "name": "_winHex",
-        "type": "bytes32"
-      },
-      {
-        "name": "_ticket",
-        "type": "bytes32"
+        "name": "_numRange",
+        "type": "uint8"
       }
     ],
-    "name": "lotteryWins8",
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool"
-      }
-    ],
+    "name": "setNumRange",
+    "outputs": [],
     "payable": false,
-    "stateMutability": "pure",
+    "stateMutability": "nonpayable",
     "type": "function",
-    "signature": "0x21bc7c66"
+    "signature": "0x19305d85"
   },
   {
     "constant": true,
