@@ -117,6 +117,13 @@ contract MemberShip {
     }
 
     // membership
+    // TODO: turn buyMembership() off. Leave a toggle to turn it on. Managers help users to do it.
+    // TODO: design in a way that user no need to interact with smart contract (but still can)
+    // TODO: payment and tier. How to design tier and payment and member period and other functions.
+    // TODO: check how to migrate these data from Rinkeby to main chain. Basically read the state,
+    //       semi-automatically generate a deploy file, then write to main chain. Acutually I can
+    //       try it from rinkeby to rinkeby!
+    // TODO: 
     function buyMembership() public payable feePaid whenNotPaused returns (bool) {
         require(addressToId[msg.sender] == 0);  // the user is not yet a member
         // TODO: uint8 _tier = determineTier(msg.sender); _assignMembership(msg.sender, _tier);

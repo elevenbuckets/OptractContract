@@ -38,6 +38,8 @@ contract BlockRegistry{
         uint vote1Count;
         uint vote2Count;
         bytes32 opRoundId;
+        bytes32 aidMerkleRoot;
+        bytes32 aidIpfsAddr;
     }
     mapping (uint => blockStat) public blockHistory;  // sblockNo to blockStat
 
@@ -74,7 +76,7 @@ contract BlockRegistry{
                        address(0), address(0), address(0)];
         // prevTimeStamp = block.timestamp - sblockTimeStep;
         blockHistory[0] = blockStat(msg.sender, block.number, 0x0, 0x0, block.timestamp,
-                                    0, 0, 0, 0x0);
+                                    0, 0, 0, 0x0, 0x0, 0x0);
         // opRoundHistory[0] = opRoundStruct(0x0000000000000000000000000000000000000000000000000000000000000001,
         //                                   nowSblockNo, 0, 0x0, 0, 0, 0x0, 0x0);
         nowSblockNo = 1;
@@ -134,7 +136,7 @@ contract BlockRegistry{
         roundVote1Count = 0;
         roundVote2Count = 0;
         articleCount = 0;
-        MemberShipInterface(memberContractAddr).updateActiveMemberCount(false);  // note: if too frequent, it will not update unless set 'forced=true'
+        // MemberShipInterface(memberContractAddr).updateActiveMemberCount(false);  // note: if too frequent, it will not update unless set 'forced=true'
 
         // update current opRoundHistory
         opRoundHistory[opRound].minSuccessRate = _minSuccessRate;  // next opRound need this
@@ -160,7 +162,9 @@ contract BlockRegistry{
         uint8 _minSuccessRate,
         uint _baseline,
         bytes32 _successRateDB,
-        bytes32 _finalListIpfs
+        bytes32 _finalListIpfs,
+        bytes32 _aidMerkleRoot,
+        bytes32 _aidIpfsAddr
     ) public validatorOnly returns (bool) {
         // Note: a `opRound` contains two parts: `(v1)vote` and `(v2)claim`,
         //       (v2) may not happen if (v1) takes more than maxVoteTime.
@@ -173,6 +177,7 @@ contract BlockRegistry{
         require(blockHistory[nowSblockNo].blockHeight == 0 && blockHistory[nowSblockNo].merkleRoot == 0x0 &&
                 blockHistory[nowSblockNo].ipfsAddr == 0x0 && blockHistory[nowSblockNo].timestamp == 0);
         require(_minSuccessRate >= 0 && _minSuccessRate < 100);  // need the equal for genesis round
+        require(_aidMerkleRoot != 0x0 && _aidIpfsAddr != 0x0);
         // require: ...
 
         // a sblock in a opRound cound be of type: genesis, lottery, lottery-NDR, finalist, finalist-NDR, or regular
@@ -180,7 +185,8 @@ contract BlockRegistry{
         if (opRound == 0 && articleCount + _uniqArticleCount >= 7) {  // genesis; set small number for test purpose
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp,
-                _uniqArticleCount, _vote1Count, _vote2Count, opRoundHistory[opRound].id
+                _uniqArticleCount, _vote1Count, _vote2Count, opRoundHistory[opRound].id,
+                _aidMerkleRoot, _aidIpfsAddr
             );
             v2EndTime = block.timestamp;  // although no 'claiming', still need to record a time
             _toNextOpRound(_merkleRoot, 0, 0, 0x0, 0x0);
@@ -192,7 +198,8 @@ contract BlockRegistry{
             // require(_successRateDB == opRoundHistory[opRound-1].succesRateDB);
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp,
-                _uniqArticleCount, _vote1Count, _vote2Count, opRoundHistory[opRound].id
+                _uniqArticleCount, _vote1Count, _vote2Count, opRoundHistory[opRound].id,
+                _aidMerkleRoot, _aidIpfsAddr
             );
             v1EndTime = block.timestamp-1;  // or don't update? BTW, subtract by 1 to make sure v2EndTime > v1Endtime (or no need?)
             v2EndTime = block.timestamp;  // in case next submit() fall into this if-statement again
@@ -203,7 +210,8 @@ contract BlockRegistry{
             require(opRoundHistory[opRound].lotteryBlockNo == 0 && opRoundHistory[opRound].lotteryWinNumber == 0x0);
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp,
-                _uniqArticleCount, _vote1Count, _vote2Count, opRoundHistory[opRound].id
+                _uniqArticleCount, _vote1Count, _vote2Count, opRoundHistory[opRound].id,
+                _aidMerkleRoot, _aidIpfsAddr
             );
             v1EndTime = block.timestamp;
             vote1Threshold = _increaseThreshold(vote1Threshold);
@@ -219,7 +227,8 @@ contract BlockRegistry{
             // require(_successRateDB == opRoundHistory[opRound-1].succesRateDB);
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp,
-                _uniqArticleCount, _vote1Count, _vote2Count, opRoundHistory[opRound].id
+                _uniqArticleCount, _vote1Count, _vote2Count, opRoundHistory[opRound].id,
+                _aidMerkleRoot, _aidIpfsAddr
             );
             vote2Threshold = _decreaseThreshold(vote2Threshold);
             v2EndTime = block.timestamp;
@@ -230,7 +239,8 @@ contract BlockRegistry{
             require(_baseline >= 1);  // what else reasonable value?
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp,
-                _uniqArticleCount, _vote1Count, _vote2Count, opRoundHistory[opRound].id
+                _uniqArticleCount, _vote1Count, _vote2Count, opRoundHistory[opRound].id,
+                _aidMerkleRoot, _aidIpfsAddr
             );
             vote2Threshold = _increaseThreshold(vote2Threshold);
             v2EndTime = block.timestamp;
@@ -241,7 +251,8 @@ contract BlockRegistry{
             articleCount += _uniqArticleCount;  // right now, this is only used in genesis
             blockHistory[nowSblockNo] = blockStat(
                 msg.sender, block.number, _merkleRoot, _ipfsAddr, block.timestamp,
-                _uniqArticleCount, _vote1Count, _vote2Count, opRoundHistory[opRound].id
+                _uniqArticleCount, _vote1Count, _vote2Count, opRoundHistory[opRound].id,
+                _aidMerkleRoot, _aidIpfsAddr
             );
         }
 
@@ -333,6 +344,12 @@ contract BlockRegistry{
         return merkleTreeValidator(proof, isLeft, txHash, blockHistory[_sblockNo].merkleRoot);
     }
 
+    function aidExist(bytes32[] memory proof, bool[] memory isLeft, bytes32 aid, uint _sblockNo) public view returns (bool){
+        require(_sblockNo < nowSblockNo);
+        require(blockHistory[_sblockNo].aidMerkleRoot != 0x0);
+        return merkleTreeValidator(proof, isLeft, aid, blockHistory[_sblockNo].aidMerkleRoot);
+    }
+
     function verifySignature(address _signer, bytes32 _msg, uint8 _v, bytes32 _r, bytes32 _s) public pure returns(bool){
         // Looks like the default prefix (of ethereum) is not used; should we introduce our own prefix?
         // bytes memory prefix = "\x19Ethereum Signed Message:\n32";
@@ -418,9 +435,16 @@ contract BlockRegistry{
         return nowSblockNo;
     }
 
-    function getBlockInfo(uint _sblockNo) external view returns (uint, bytes32, bytes32) {
+    function getBlockInfo(uint _sblockNo) external view returns (uint, bytes32, bytes32, bytes32, bytes32, bytes32, address) {
         // TODO: update the results
-        return (blockHistory[_sblockNo].blockHeight, blockHistory[_sblockNo].merkleRoot, blockHistory[_sblockNo].ipfsAddr);
+        return (blockHistory[_sblockNo].blockHeight,
+                blockHistory[_sblockNo].merkleRoot,
+                blockHistory[_sblockNo].ipfsAddr,
+                blockHistory[_sblockNo].aidMerkleRoot,
+                blockHistory[_sblockNo].aidIpfsAddr,
+                blockHistory[_sblockNo].opRoundId,
+                blockHistory[_sblockNo].validator
+               );
     }
 
     function queryValidator(uint _idx) external view returns (address) {
