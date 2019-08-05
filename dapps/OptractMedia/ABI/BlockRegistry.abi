@@ -31,6 +31,36 @@
   },
   {
     "constant": true,
+    "inputs": [],
+    "name": "QOTAddr",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x21a8770d"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "reward",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x228cb733"
+  },
+  {
+    "constant": true,
     "inputs": [
       {
         "name": "",
@@ -313,6 +343,10 @@
     "inputs": [
       {
         "name": "_memberContractAddr",
+        "type": "address"
+      },
+      {
+        "name": "_QOTAddr",
         "type": "address"
       }
     ],
@@ -678,6 +712,21 @@
     "constant": false,
     "inputs": [
       {
+        "name": "_reward",
+        "type": "uint256"
+      }
+    ],
+    "name": "setReward",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0x293be456"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
         "name": "_opRound",
         "type": "uint256"
       },
@@ -696,6 +745,22 @@
       {
         "name": "_sblockNo",
         "type": "uint256"
+      },
+      {
+        "name": "_payload",
+        "type": "bytes32"
+      },
+      {
+        "name": "_v",
+        "type": "uint8"
+      },
+      {
+        "name": "_r",
+        "type": "bytes32"
+      },
+      {
+        "name": "_s",
+        "type": "bytes32"
       }
     ],
     "name": "claimReward",
@@ -708,7 +773,7 @@
     "payable": false,
     "stateMutability": "nonpayable",
     "type": "function",
-    "signature": "0xf3297aa3"
+    "signature": "0xfd2e4a40"
   },
   {
     "constant": true,

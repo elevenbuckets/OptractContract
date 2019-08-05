@@ -23,9 +23,10 @@ interface BlockRegistryInterface {
     function isWinningTicket(uint _opRound, bytes32 _ticket) external view returns(bool, uint8);
     function txExist(bytes32[] calldata proof, bool[] calldata isLeft, bytes32 txHash, uint _sblockNo) external view returns (bool);
     function aidExist(bytes32[] calldata proof, bool[] calldata isLeft, bytes32 aid, uint _sblockNo) external view returns (bool);
+    function setReward(uint _reward) external;
     function claimReward(
-        bytes32[] calldata proof1, bool[] calldata isLeft1, bytes32 txHash1, uint sblockNo1,
-        bytes32[] calldata proof2, bool[] calldata isLeft2, bytes32 txHash2, uint sblockNo2
+        uint _opRound, bytes32[] calldata proof, bool[] calldata isLeft, bytes32 txHash, uint _sblockNo,
+        bytes32 _payload, uint8 _v, bytes32 _r, bytes32 _s
     ) external view returns(bool);
     function merkleTreeValidator(bytes32[] calldata proof, bool[] calldata isLeft, bytes32 targetLeaf, bytes32 _merkleRoot) external pure returns (bool);
     // function calcLeaf(uint _nonce, bytes32 _ipfs, uint _since, uint _agree, uint _disagree, bytes32 _reply, bytes32 _comment) external view returns (bytes32);

@@ -1,6 +1,7 @@
 pragma solidity ^0.5.2;
 import "./lib/safe-math.sol";
 import "./Interfaces/MemberShipInterface.sol";
+import "./Interfaces/QOTInterface.sol";
 
 // TODO: use safemath
 
@@ -11,6 +12,7 @@ contract BlockRegistry{
     address[4] public managers;  // use "coreManagers" and "managers" as in "MemberShip.sol"?
     address[16] public validators;
     address public memberContractAddr;
+    address public QOTAddr;
     uint public nowSblockNo;  // start from 1
     uint public sblockTimeStep = 15 minutes;  // it's a minimum timestep
     // bool public opRoundStatus = true;  // need `true` for 1st round; or simply use "pause/unpause"?
@@ -25,8 +27,8 @@ contract BlockRegistry{
     uint public v2EndTime;
     bool public atV1;
     uint8 public numRange = 8;  // it means pick x out of 16 numbers; should eventually make it constant
-
     uint public maxVoteTime = 15 minutes;  // an Opround cannot longer than 2*maxVoteTime; use small values for debug
+    uint public reward = 100;  // should be a global (constant) variable. Or fix a value in QOT
 
     struct blockStat{
         address validator;
@@ -62,8 +64,9 @@ contract BlockRegistry{
     // mapping (uint => bytes32) public opRoundLog;  // opRound index to opRound id
     mapping (uint => mapping(address => bool)) opRoundClaimed;
 
-    constructor(address _memberContractAddr) public {
+    constructor(address _memberContractAddr, address _QOTAddr) public {
         memberContractAddr = _memberContractAddr;
+        QOTAddr = _QOTAddr;
         managers = [ 0xB440ea2780614b3c6a00e512f432785E7dfAFA3E,
                      0x4AD56641C569C91C64C28a904cda50AE5326Da41,
                      0xaF7400787c54422Be8B44154B1273661f1259CcD,
@@ -359,36 +362,33 @@ contract BlockRegistry{
         return _signer == signer;
     }
 
+    function setReward(uint _reward) public managerOnly {
+        require(_reward < reward*10);  // other better restrictions?
+        reward = _reward;
+    }
+
     function claimReward(
-        uint _opRound, bytes32[] calldata proof, bool[] calldata isLeft, bytes32 txHash, uint _sblockNo
+        uint _opRound, bytes32[] calldata proof, bool[] calldata isLeft, bytes32 txHash, uint _sblockNo,
+        bytes32 _payload, uint8 _v, bytes32 _r, bytes32 _s
     ) external returns(bool) {
         // requirements:
         // * the txHash is in the tree
         // * the txHash happen before the lottery round of that _opRound
-        // * the txHash is submitted by the msg.sender
-        //   - is "verifySignature()" enough? Can the "_msg" in verifySignature() related to this txHash?
-        //   - alternatively, use the following to verify txHash: [msg.sender, opround, aid, v1block, v1leaf, v2block, v2leaf, since, ...]
-        // * require(isWinningTicket(opround, txHash))
-        // * current time is not too far from sblockNo (how far is acceptable?)
-        //   - can the "_opRound" easily calculated from "sblockNo"?
-        //   - or, if no "_opRound" as input argument, only check recent N opRound, if the "sblockNo" is still
-        //     earlier than the opRoundHistory[opRound-N].blockHeight, then reject. N should between 1 and 5, or?
+        // * the txHash is submitted by the msg.sender (it should be a v1 vote)
+        // * the txHash is a WinningTicket
+        // * claim in in same opRound (or maybe next opRound is still acceptable?)
         // * require(opRoundClaimed[opRound][msg.sender] == false, "Only one claim per opRound");
-        require(_sblockNo <= opRoundHistory[_opRound].lotteryBlockNo);
         require(txExist(proof, isLeft, txHash, _sblockNo));
-        // how to proof the txhash is from this msg.sender?
-        // require(
+        require(_sblockNo <= opRoundHistory[_opRound].lotteryBlockNo);
+        require(verifySignature(msg.sender, _payload, _v, _r, _s));  // from v1vote
         require(_isWinningTicket(_opRound, txHash));
         require(_opRound == opRound || _opRound == opRound + 1);  // or only in same opRound?
         require(opRoundClaimed[_opRound][msg.sender] == false, "An account can only claim once per opRound");
-        // bool _win;
-        // uint _msr;
         // (_win, _msr) = isWinningTicket(_opRound, txHash);
         // require(_win);
 
         opRoundClaimed[opRound][msg.sender] = true;
-        // uint _amount = 100;  // should be a global (constant) variable. Or fix a value in QOT
-        // QOTInterface(QOTAddr).mint(_toAddr, _amount);
+        QOTInterface(QOTAddr).mint(msg.sender, reward);
     }
 
     // merkle tree and leaves

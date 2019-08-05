@@ -10,7 +10,7 @@ module.exports = function(deployer) {
     deployer.deploy(StandardToken, {overwrite: false});
     deployer.deploy(QOT).then( (iQOT) => {
         return deployer.deploy(MemberShip, QOT.address).then ( (iMemberShip) => {
-            return deployer.deploy(BlockRegistry, MemberShip.address).then( ()=>{
+            return deployer.deploy(BlockRegistry, MemberShip.address, QOT.address).then( ()=>{
                 // iQOT.setMining(BlockRegistry.address, 0);  // leave it for future, or manually
                 return iMemberShip.addAppWhitelist(BlockRegistry.address, 3);  // 0, 1, 2 are for coreManagers
             })
