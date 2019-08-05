@@ -264,6 +264,14 @@
       {
         "name": "opRoundId",
         "type": "bytes32"
+      },
+      {
+        "name": "aidMerkleRoot",
+        "type": "bytes32"
+      },
+      {
+        "name": "aidIpfsAddr",
+        "type": "bytes32"
       }
     ],
     "payable": false,
@@ -385,6 +393,14 @@
       {
         "name": "_finalListIpfs",
         "type": "bytes32"
+      },
+      {
+        "name": "_aidMerkleRoot",
+        "type": "bytes32"
+      },
+      {
+        "name": "_aidIpfsAddr",
+        "type": "bytes32"
       }
     ],
     "name": "submitMerkleRoot",
@@ -397,7 +413,7 @@
     "payable": false,
     "stateMutability": "nonpayable",
     "type": "function",
-    "signature": "0xc1006b8a"
+    "signature": "0x5c1b185f"
   },
   {
     "constant": true,
@@ -594,6 +610,38 @@
     "constant": true,
     "inputs": [
       {
+        "name": "proof",
+        "type": "bytes32[]"
+      },
+      {
+        "name": "isLeft",
+        "type": "bool[]"
+      },
+      {
+        "name": "aid",
+        "type": "bytes32"
+      },
+      {
+        "name": "_sblockNo",
+        "type": "uint256"
+      }
+    ],
+    "name": "aidExist",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xc9771591"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
         "name": "_signer",
         "type": "address"
       },
@@ -730,6 +778,22 @@
       {
         "name": "",
         "type": "bytes32"
+      },
+      {
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "name": "",
+        "type": "address"
       }
     ],
     "payable": false,

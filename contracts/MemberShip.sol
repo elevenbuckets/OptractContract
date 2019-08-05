@@ -13,7 +13,7 @@ contract MemberShip {
     uint public fee = 0.01 ether;
     // uint public memberPeriod = 160000;  // 40000 blocks ~ a week in rinkeby, for test only
     uint public memberPeriod = 30 days;
-    uint public lastMemberCountUpdate;  // use this to prevent too frequent update; see updateActiveMemberCount()
+    uint public lastMemberCountUpdateTime;  // use this to prevent too frequent update; see updateActiveMemberCount()
     bool public paused;
     uint public activeMemberCount;  // need to call function to update this value
 
@@ -51,7 +51,7 @@ contract MemberShip {
         }
         assert(totalId == 3);
         activeMemberCount = 3;  // manually set an initial value
-        lastMemberCountUpdate = block.timestamp;
+        lastMemberCountUpdateTime = block.timestamp;
     }
 
     modifier ownerOnly() {
@@ -135,6 +135,7 @@ contract MemberShip {
         totalId += 1;  // make it start from 1
         addressToId[_addr] = totalId;
         memberDB[totalId] = MemberInfo(_addr, _tier, block.timestamp, 0, bytes32(0), "");
+        activeMemberCount += 1;
     }
 
     function renewMembership() public payable feePaid isMember whenNotPaused returns (uint) {
@@ -313,26 +314,24 @@ contract MemberShip {
         return (status, bytes32(_id), memberDB[_id].since, memberDB[_id].penalty, memberDB[_id].kycid, memberDB[_id].tier, _expireTime);
     }
 
-    function getActiveMemberCount() public view returns (uint){
-        return(activeMemberCount);
+    function getActiveMemberCount() external view returns (uint){
+        return activeMemberCount;
     }
 
-    function updateActiveMemberCount(bool _forced) public isAppWhitelist returns (uint){
-        // only update once per _cooldownTime, unless set _forced to true
-        // potential high gas cost: add an argument `uint _memberCount` and let coreManager to update this?
-        //                          in such case coreManager first call view function _countActiveMembers
-        //                          and then call this function
-        require(block.timestamp > lastMemberCountUpdate);
-        uint _cooldownTime = 24 hours;  // or 12 hours? Is this also sort of grace period when a membership expires?
-        if ((block.timestamp - lastMemberCountUpdate < _cooldownTime && _forced) ||
-            (block.timestamp - lastMemberCountUpdate > _cooldownTime)) {
-            activeMemberCount = _countActiveMembers();
-            lastMemberCountUpdate = block.timestamp;
-        }  // else don't count
-        return(activeMemberCount);
+    function getLastMemberCountUpdateTime() external view returns (uint){
+        return lastMemberCountUpdateTime;
     }
 
-    function _countActiveMembers() internal view returns (uint) {
+
+    function updateActiveMemberCount(uint _count) public coreManagerOnly returns (uint){
+        // coreManagers should provide values base on countActiveMembers()
+        require(_count >= 1);
+        activeMemberCount = _count;
+        lastMemberCountUpdateTime = block.timestamp;
+        return lastMemberCountUpdateTime;
+    }
+
+    function countActiveMembers() public view returns (uint) {
         uint _count = 0;
         for (uint i = 0; i <= totalId; i++) {
             if (idExpireTime(i) > block.timestamp) {
@@ -361,6 +360,13 @@ contract MemberShip {
         // "managers" can assign KYC id
         require(_addr != address(0));
         managers[_id] = _addr;
+    }
+
+    function updateCoreManager(address _addr, uint _id) public ownerOnly returns(address){
+        require(_addr != address(0) && _id < 3);  // only 3 core managers
+        address prevCM = coreManagers[_id];
+        coreManagers[_id] = _addr;
+        return prevCM;
     }
 
     function getManagers() external view coreManagerOnly returns(address[8] memory) {

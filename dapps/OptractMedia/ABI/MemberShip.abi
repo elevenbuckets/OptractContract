@@ -31,21 +31,6 @@
   },
   {
     "constant": true,
-    "inputs": [],
-    "name": "lastMemberCountUpdate",
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function",
-    "signature": "0x24633212"
-  },
-  {
-    "constant": true,
     "inputs": [
       {
         "name": "",
@@ -113,6 +98,21 @@
     "stateMutability": "view",
     "type": "function",
     "signature": "0x5fb6c6ed"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "lastMemberCountUpdateTime",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x6f82a860"
   },
   {
     "constant": true,
@@ -670,11 +670,26 @@
     "signature": "0x22faa41f"
   },
   {
+    "constant": true,
+    "inputs": [],
+    "name": "getLastMemberCountUpdateTime",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0x52cbc932"
+  },
+  {
     "constant": false,
     "inputs": [
       {
-        "name": "_forced",
-        "type": "bool"
+        "name": "_count",
+        "type": "uint256"
       }
     ],
     "name": "updateActiveMemberCount",
@@ -687,7 +702,22 @@
     "payable": false,
     "stateMutability": "nonpayable",
     "type": "function",
-    "signature": "0x47bda3d9"
+    "signature": "0xc48105a3"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "countActiveMembers",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function",
+    "signature": "0xaa33e4a8"
   },
   {
     "constant": false,
@@ -742,6 +772,30 @@
     "stateMutability": "nonpayable",
     "type": "function",
     "signature": "0xd8de1066"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_addr",
+        "type": "address"
+      },
+      {
+        "name": "_id",
+        "type": "uint256"
+      }
+    ],
+    "name": "updateCoreManager",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "signature": "0x0858f306"
   },
   {
     "constant": true,

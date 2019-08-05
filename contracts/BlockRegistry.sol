@@ -276,7 +276,7 @@ contract BlockRegistry{
         require(activeMemberCount >= 3);  // '3' is num of coreManagers, or use 1? 100?
         // vote2Rate select ABOUT 25% of people from 50% of member, i.e., ~1/8 of total members
         // Here try to keep vote2Rate roughly in the range of 0 and 100, so multiply 8 back.
-        // Note that the '1/8' factor is uncertain, so 'vote2Rate' could be larger than 100
+        // Note that the '1/8' factor is uncertain, could either over or underestimated
         uint vote2Rate = (8 * 100 * v2Count) / activeMemberCount;
         if (vote2Rate >= vote2Threshold) {
             return true;

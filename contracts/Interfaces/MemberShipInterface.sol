@@ -24,10 +24,12 @@ interface MemberShipInterface {
     function addrToId(address _addr) external view returns (uint);
     function getMemberInfo(address _addr) external view returns (uint, bytes32, uint, uint, bytes32, uint8, uint);
     function getActiveMemberCount() external view returns (uint);
-    function updateActiveMemberCount(bool _forced) external returns (uint);
+    function updateActiveMemberCount(uint _count) external returns (uint);
+    function countActiveMembers() external view returns (uint);
     function pause() external;
     function unpause() external;
     function updateManager(address _addr, uint _id) external;
+    function updateCoreManager(address _addr, uint _id) external returns(address);
     function updateQOTAddr(address _addr) external;
 
 }
