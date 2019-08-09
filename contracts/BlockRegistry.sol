@@ -79,8 +79,8 @@ contract BlockRegistry{
                        address(0), address(0), address(0)];
         blockHistory[0] = blockStat(msg.sender, block.number, 0x0, 0x0, block.timestamp,
                                     0, 0, 0, 0x0, 0x0, 0x0);
-        opRoundHistory[0] = opRoundStruct(0x0000000000000000000000000000000000000000000000000000000000000001,
-                                          nowSblockNo, 0, 0x0, 0, 0, 0x0, 0x0);
+        // opRoundHistory[0] = opRoundStruct(0x0000000000000000000000000000000000000000000000000000000000000001,
+        //                                   nowSblockNo, 0, 0x0, 0, 0, 0x0, 0x0);
         nowSblockNo = 1;
     }
 
