@@ -77,11 +77,10 @@ contract BlockRegistry{
                        address(0), address(0), address(0), address(0), address(0),
                        address(0), address(0), address(0), address(0), address(0),
                        address(0), address(0), address(0)];
-        // prevTimeStamp = block.timestamp - sblockTimeStep;
         blockHistory[0] = blockStat(msg.sender, block.number, 0x0, 0x0, block.timestamp,
                                     0, 0, 0, 0x0, 0x0, 0x0);
-        // opRoundHistory[0] = opRoundStruct(0x0000000000000000000000000000000000000000000000000000000000000001,
-        //                                   nowSblockNo, 0, 0x0, 0, 0, 0x0, 0x0);
+        opRoundHistory[0] = opRoundStruct(0x0000000000000000000000000000000000000000000000000000000000000001,
+                                          nowSblockNo, 0, 0x0, 0, 0, 0x0, 0x0);
         nowSblockNo = 1;
     }
 
@@ -384,8 +383,6 @@ contract BlockRegistry{
         require(_isWinningTicket(_opRound, txHash));
         require(_opRound == opRound || _opRound == opRound + 1);  // or only in same opRound?
         require(opRoundClaimed[_opRound][msg.sender] == false, "An account can only claim once per opRound");
-        // (_win, _msr) = isWinningTicket(_opRound, txHash);
-        // require(_win);
 
         opRoundClaimed[opRound][msg.sender] = true;
         QOTInterface(QOTAddr).mint(msg.sender, reward);
