@@ -11,17 +11,13 @@ interface BlockRegistryInterface {
         bytes32 _aidIpfsAddr,
         bytes32 _successRateDB,
         bytes32 _finalListIpfs,
-        uint _uniqArticleCount,
-        uint _vote1Count,
-        uint _vote2Count,
-        uint8 _minSuccessRate,
-        uint _baseline
+        uint[5] calldata _ints // uint _uniqArticleCount, uint _vote1Count, uint _vote2Count, uint _minSuccessRate, uint _baseline
     ) external returns (bool);
     function isEnoughV1(uint v1Count) external view returns (bool);
     function isEnoughV2(uint v2Count) external view returns (bool);
     function calcLotteryWinNumber(bytes32 _mr, bytes32 _bhash) external pure returns(bytes32);
     function lotteryWins(bytes32 _winHex, bytes32 _ticket, uint8 _numRange) external pure returns(bool);
-    function isWinningTicket(uint _opRound, bytes32 _ticket) external view returns(bool, uint8);
+    function isWinningTicket(uint _opRound, bytes32 _ticket) external view returns(bool, uint);
     function txExist(bytes32[] calldata proof, bool[] calldata isLeft, bytes32 txHash, uint _sblockNo) external view returns (bool);
     function aidExist(bytes32[] calldata proof, bool[] calldata isLeft, bytes32 aid, uint _sblockNo) external view returns (bool);
     function setReward(uint _reward) external;

@@ -417,24 +417,8 @@
         "type": "bytes32"
       },
       {
-        "name": "_uniqArticleCount",
-        "type": "uint256"
-      },
-      {
-        "name": "_vote1Count",
-        "type": "uint256"
-      },
-      {
-        "name": "_vote2Count",
-        "type": "uint256"
-      },
-      {
-        "name": "_minSuccessRate",
-        "type": "uint8"
-      },
-      {
-        "name": "_baseline",
-        "type": "uint256"
+        "name": "_ints",
+        "type": "uint256[5]"
       }
     ],
     "name": "submitMerkleRoot",
@@ -447,7 +431,7 @@
     "payable": false,
     "stateMutability": "nonpayable",
     "type": "function",
-    "signature": "0x02990742"
+    "signature": "0x51086450"
   },
   {
     "constant": true,
@@ -600,7 +584,7 @@
       },
       {
         "name": "",
-        "type": "uint8"
+        "type": "uint256"
       }
     ],
     "payable": false,
@@ -1036,7 +1020,7 @@
       },
       {
         "name": "",
-        "type": "uint8"
+        "type": "uint256"
       },
       {
         "name": "",

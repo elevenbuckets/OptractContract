@@ -53,7 +53,7 @@ contract BlockRegistry{
         uint lotteryBlockNo;
         bytes32 lotteryWinNumber;
         // update in final-sblock
-        uint8 minSuccessRate;  // shoud be an integer between 0 and 100; this is used in next opRound
+        uint minSuccessRate;  // shoud be an integer between 0 and 100; this is used in next opRound
         uint baseline;  // i.e, the total votes of the vote2 winner
         bytes32 succesRateDB;  // IPFS contain success rate
         bytes32 finalListIpfs;
@@ -134,7 +134,7 @@ contract BlockRegistry{
         }
     }
 
-    function _toNextOpRound(bytes32 _mr, uint8 _minSuccessRate, uint _baseline, bytes32 _successRateDB, bytes32 _finalListIpfs) internal {
+    function _toNextOpRound(bytes32 _mr, uint _minSuccessRate, uint _baseline, bytes32 _successRateDB, bytes32 _finalListIpfs) internal {
         roundVote1Count = 0;
         roundVote2Count = 0;
         articleCount = 0;
@@ -162,11 +162,7 @@ contract BlockRegistry{
         bytes32 _aidIpfsAddr,
         bytes32 _successRateDB,
         bytes32 _finalListIpfs,
-        uint _uniqArticleCount,
-        uint _vote1Count,
-        uint _vote2Count,
-        uint8 _minSuccessRate,
-        uint _baseline
+        uint[5] memory _ints // uint _uniqArticleCount, uint _vote1Count, uint _vote2Count, uint _minSuccessRate, uint _baseline
     ) public validatorOnly returns (bool) {
         // Note: a `opRound` contains two parts: `(v1)vote` and `(v2)claim`,
         //       (v2) may not happen if (v1) takes more than maxVoteTime.
@@ -178,8 +174,13 @@ contract BlockRegistry{
         require(blockHistory[nowSblockNo-1].merkleRoot != _merkleRoot && blockHistory[nowSblockNo-1].ipfsAddr != _ipfsAddr);  // prevent re-submission
         require(blockHistory[nowSblockNo].blockHeight == 0 && blockHistory[nowSblockNo].merkleRoot == 0x0 &&
                 blockHistory[nowSblockNo].ipfsAddr == 0x0 && blockHistory[nowSblockNo].timestamp == 0);
-        require(_minSuccessRate >= 0 && _minSuccessRate < 100);  // need the equal for genesis round
         require(_aidMerkleRoot != 0x0 && _aidIpfsAddr != 0x0);
+        uint _uniqArticleCount = _ints[0];
+        uint _vote1Count = _ints[1];
+        uint _vote2Count = _ints[2];
+        uint _minSuccessRate = _ints[3];
+        uint _baseline = _ints[4];
+        require(_minSuccessRate >= 0 && _minSuccessRate < 100);  // need the equal for genesis round
         // require: ...
 
         // a sblock in a opRound cound be of type: genesis, lottery, lottery-NDR, finalist, finalist-NDR, or regular
@@ -334,7 +335,7 @@ contract BlockRegistry{
         numRange = _numRange;
     }
 
-    function isWinningTicket(uint _opRound, bytes32 _ticket) public view returns(bool, uint8) {
+    function isWinningTicket(uint _opRound, bytes32 _ticket) public view returns(bool, uint) {
         // TODO: add all merkle validation arguments in order to verify the txHash is BEFORE the lottery
         return (_isWinningTicket(_opRound, _ticket), opRoundHistory[_opRound-1].minSuccessRate);
     }
@@ -498,7 +499,7 @@ contract BlockRegistry{
         return (i, opRoundHistory[i].id, opRoundHistory[i].initBlockNo);
     }
 
-    function queryOpRoundResult(uint _opRound) external view returns (uint, bytes32, uint, uint8, bytes32, bytes32, uint, bytes32, uint) {
+    function queryOpRoundResult(uint _opRound) external view returns (uint, bytes32, uint, uint, bytes32, bytes32, uint, bytes32, uint) {
         // this function returns default values (0 and 0x0) for current pending opRound
         // this function is different from other `queryOpRound*()` in that a input of 0 does not mean query current opRound
         // For opRoundHistory[0], the id is '0x1' and the initBlockNo is the block.height during construction
