@@ -7,14 +7,15 @@ interface BlockRegistryInterface {
     function submitMerkleRoot(
         bytes32 _merkleRoot,
         bytes32 _ipfsAddr,
+        bytes32 _aidMerkleRoot,
+        bytes32 _aidIpfsAddr,
+        bytes32 _successRateDB,
+        bytes32 _finalListIpfs,
         uint _uniqArticleCount,
         uint _vote1Count,
         uint _vote2Count,
-        uint _minSuccessRate,
-        bytes32 _successRateDB,
-        bytes32 _finalListIpfs,
-        bytes32 _aidMerkleRoot,
-        bytes32 _aidIpfsAddr
+        uint8 _minSuccessRate,
+        uint _baseline
     ) external returns (bool);
     function isEnoughV1(uint v1Count) external view returns (bool);
     function isEnoughV2(uint v2Count) external view returns (bool);

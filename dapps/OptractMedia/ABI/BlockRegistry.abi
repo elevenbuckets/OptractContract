@@ -401,6 +401,22 @@
         "type": "bytes32"
       },
       {
+        "name": "_aidMerkleRoot",
+        "type": "bytes32"
+      },
+      {
+        "name": "_aidIpfsAddr",
+        "type": "bytes32"
+      },
+      {
+        "name": "_successRateDB",
+        "type": "bytes32"
+      },
+      {
+        "name": "_finalListIpfs",
+        "type": "bytes32"
+      },
+      {
         "name": "_uniqArticleCount",
         "type": "uint256"
       },
@@ -419,22 +435,6 @@
       {
         "name": "_baseline",
         "type": "uint256"
-      },
-      {
-        "name": "_successRateDB",
-        "type": "bytes32"
-      },
-      {
-        "name": "_finalListIpfs",
-        "type": "bytes32"
-      },
-      {
-        "name": "_aidMerkleRoot",
-        "type": "bytes32"
-      },
-      {
-        "name": "_aidIpfsAddr",
-        "type": "bytes32"
       }
     ],
     "name": "submitMerkleRoot",
@@ -447,7 +447,7 @@
     "payable": false,
     "stateMutability": "nonpayable",
     "type": "function",
-    "signature": "0x5c1b185f"
+    "signature": "0x02990742"
   },
   {
     "constant": true,

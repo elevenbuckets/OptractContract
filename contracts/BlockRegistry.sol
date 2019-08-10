@@ -158,15 +158,15 @@ contract BlockRegistry{
     function submitMerkleRoot(
         bytes32 _merkleRoot,
         bytes32 _ipfsAddr,
+        bytes32 _aidMerkleRoot,
+        bytes32 _aidIpfsAddr,
+        bytes32 _successRateDB,
+        bytes32 _finalListIpfs,
         uint _uniqArticleCount,
         uint _vote1Count,
         uint _vote2Count,
         uint8 _minSuccessRate,
-        uint _baseline,
-        bytes32 _successRateDB,
-        bytes32 _finalListIpfs,
-        bytes32 _aidMerkleRoot,
-        bytes32 _aidIpfsAddr
+        uint _baseline
     ) public validatorOnly returns (bool) {
         // Note: a `opRound` contains two parts: `(v1)vote` and `(v2)claim`,
         //       (v2) may not happen if (v1) takes more than maxVoteTime.
