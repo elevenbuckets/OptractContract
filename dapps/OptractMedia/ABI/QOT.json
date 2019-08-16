@@ -12537,12 +12537,12 @@
     "4": {
       "events": {},
       "links": {},
-      "address": "0x1F30A2a86F6F9A2d2979F26bad2cFAe87837eF7B",
-      "transactionHash": "0xfb07079c61d1d50978cab39c657c2910b8e7d7f19422b555ef57f9cc9b484aca"
+      "address": "0x09e52D47B69D89AC97AD7ca1223FaB9Ab4fE6F2c",
+      "transactionHash": "0x1d802772847084711e3109b0126dd225062676b09b230fd21b292d2907c32ad8"
     }
   },
   "schemaVersion": "3.0.1",
-  "updatedAt": "2019-08-10T04:33:42.083Z",
+  "updatedAt": "2019-08-16T13:11:34.095Z",
   "devdoc": {
     "methods": {
       "allowance(address,address)": {
