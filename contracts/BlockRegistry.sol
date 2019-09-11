@@ -27,7 +27,8 @@ contract BlockRegistry{
     uint public v2EndTime;
     bool public atV1;
     uint8 public numRange = 8;  // it means pick x out of 16 numbers; should eventually make it constant
-    uint public maxVoteTime = 15 minutes;  // an Opround cannot longer than 2*maxVoteTime; use small values for debug
+    uint public maxVoteTime1 = 12 hours;  // duration of v1-vote
+    uint public maxVoteTime2 = 12 hours;  // duration of v2-claim
     uint public reward = 100;  // should be a global (constant) variable. Or fix a value in QOT
 
     struct blockStat{
@@ -103,10 +104,16 @@ contract BlockRegistry{
     }
 
     // some adjustable functions only for developing phase
-    function updateMaxVoteTime(uint _seconds) public validatorOnly {
+    function updateMaxVoteTime1(uint _seconds) public validatorOnly {
         require(_seconds > 180 && _seconds < 86400);  // restrict to a range
-        maxVoteTime = _seconds;
+        maxVoteTime1 = _seconds;
     }
+
+    function updateMaxVoteTime2(uint _seconds) public validatorOnly {
+        require(_seconds > 180 && _seconds < 86400);  // restrict to a range
+        maxVoteTime2 = _seconds;
+    }
+
 
     function setThreshold(uint _x, uint _y) public validatorOnly{
         require(_x >= 5 && _x <=95);
@@ -193,7 +200,7 @@ contract BlockRegistry{
             );
             v2EndTime = block.timestamp;  // although no 'claiming', still need to record a time
             _toNextOpRound(_merkleRoot, 0, 0, 0x0, 0x0);
-        } else if (opRound != 0 && atV1 && (block.timestamp - v2EndTime > maxVoteTime)) {  // A "no-draw-round"! Proceed to next OpRound
+        } else if (opRound != 0 && atV1 && (block.timestamp - v2EndTime > maxVoteTime1)) {  // A "no-draw-round"! Proceed to next OpRound
             // TODO: uncomment following lines?
             // require(minSuccessRate == opRoundHistory[opRound-1].minSuccessRate);
             // require(_baseline == 0);
@@ -222,7 +229,7 @@ contract BlockRegistry{
             opRoundHistory[opRound].lotteryWinNumber = calcLotteryWinNumber(_merkleRoot, blockhash(block.number-1));
             roundVote2Count = 0;  // should be 0 already but reset anyway
             atV1 = false;
-        } else if (opRound != 0 && atV1 == false && (block.timestamp - v1EndTime > maxVoteTime)) {  // too long! End this Opround-v2 and proceed to next OpRound
+        } else if (opRound != 0 && atV1 == false && (block.timestamp - v1EndTime > maxVoteTime2)) {  // too long! End this Opround-v2 and proceed to next OpRound
             // TODO: uncomment following lines?
             // require(minSuccessRate == opRoundHistory[opRound-1].minSuccessRate);
             // require(_baseline == 0);
@@ -341,6 +348,11 @@ contract BlockRegistry{
     }
 
     // claim reward
+    function setReward(uint _reward) public managerOnly {
+        require(_reward < reward*10);  // other better restrictions?
+        reward = _reward;
+    }
+
     function txExist(bytes32[] memory proof, bool[] memory isLeft, bytes32 txHash, uint _sblockNo) public view returns (bool){
         require(_sblockNo < nowSblockNo);
         require(blockHistory[_sblockNo].merkleRoot != 0x0);
@@ -353,40 +365,73 @@ contract BlockRegistry{
         return merkleTreeValidator(proof, isLeft, aid, blockHistory[_sblockNo].aidMerkleRoot);
     }
 
-    function verifySignature(address _signer, bytes32 _msg, uint8 _v, bytes32 _r, bytes32 _s) public pure returns(bool){
-        // Looks like the default prefix (of ethereum) is not used; should we introduce our own prefix?
-        // bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        // bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, _msg));
-        // address signer = ecrecover(prefixedHash, _v, _r, _s);
-        address signer = ecrecover(_msg, _v, _r, _s);
-        return _signer == signer;
+    function verifySignature(address _signer, bytes32 _msg, uint8 _v, bytes32 _r, bytes32 _s, bool has_prefix) public pure returns(bool){
+        // sometimes "_msg" already contain the prefix, so no need to add prefix again
+        address __signer;
+        if (has_prefix) {
+            __signer = ecrecover(_msg, _v, _r, _s);
+        } else {
+            bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+            bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, _msg));
+            __signer = ecrecover(prefixedHash, _v, _r, _s);
+        }
+        return __signer == _signer;
     }
 
-    function setReward(uint _reward) public managerOnly {
-        require(_reward < reward*10);  // other better restrictions?
-        reward = _reward;
+    function verifySignatureWrap(address _signer, bytes32[4] memory b32s, uint8 _v) public pure returns(bool){
+        // withdraw() is nearly "stack-too-deep" so group some arguments and unpack here
+        return verifySignature(_signer, b32s[1], _v, b32s[2], b32s[3], true);
     }
 
-    function claimReward(
-        uint _opRound, bytes32[] calldata proof, bool[] calldata isLeft, bytes32 txHash, uint _sblockNo,
-        bytes32 _payload, uint8 _v, bytes32 _r, bytes32 _s
+    function withdraw(
+        bytes32[4] calldata b32s, uint[4] calldata uints,
+        bytes32[] calldata proof, bool[] calldata isLeft,
+        bytes2 s1, bytes calldata s3, bytes calldata s4
     ) external returns(bool) {
-        // requirements:
-        // * the txHash is in the tree
-        // * the txHash happen before the lottery round of that _opRound
-        // * the txHash is submitted by the msg.sender (it should be a v1 vote)
-        // * the txHash is a WinningTicket
-        // * claim in in same opRound (or maybe next opRound is still acceptable?)
-        // * require(opRoundClaimed[opRound][msg.sender] == false, "Only one claim per opRound");
-        require(txExist(proof, isLeft, txHash, _sblockNo));
-        require(_sblockNo <= opRoundHistory[_opRound].lotteryBlockNo);
-        require(verifySignature(msg.sender, _payload, _v, _r, _s));  // from vote; how to verify it's a vote?
-        require(_isWinningTicket(_opRound, txHash));
-        require(_opRound == opRound || _opRound == opRound + 1);  // or only in same opRound?
-        require(opRoundClaimed[_opRound][msg.sender] == false, "An account can only claim once per opRound");
+        // note: v1 is vote by the user in _opRound, v2 is the article used for claim
+        // note: "b32s" and "uints" are also used in "verifySignatureWrap()" and "genTxhash()":
+        //     b32s = [v1leaf, _payload, _r, _s]
+        //     uints = [_opRound, claimBlock, v1block, _v]
 
-        opRoundClaimed[opRound][msg.sender] = true;
+        // v1block < lottery_block and v1leaf is winning ticket and current opRound 
+        require(uints[2] <= opRoundHistory[uints[0]].lotteryBlockNo);
+        require(_isWinningTicket(uints[0], b32s[0]));
+        // require(uints[1] > opRoundHistory[uints[0]].lotteryBlockNo);
+        require(opRound >= uints[0] && opRound <= uints[0] + 2);  // can withdraw at this and a few following oprounds
+
+        // generate txHash and proof the txHash exists
+        bytes32 txhash = genV2Txhash(msg.sender, b32s, uints, s1, s3, s4);
+        require(txExist(proof, isLeft, txhash, uints[1]));
+        require(verifySignatureWrap(msg.sender, b32s, uint8(uints[3])));
+
+        require(opRoundClaimed[uints[0]][msg.sender] == false, "An account can only withdraw once per opRound if qualified");
+        opRoundClaimed[uints[0]][msg.sender] = true;
+
         QOTInterface(QOTAddr).mint(msg.sender, reward);
+    }
+
+    function genV2Txhash(
+        address _sender, bytes32[4] memory b32s, uint[4] memory uints,
+        bytes2 s1, bytes memory s3, bytes memory s4
+    ) public view returns(bytes32) {
+        // note: txhash is hashed(rlp), some parts of rlp are fixed (such as "11be02000..." and lengths of bytes32),
+        //       users need to submit three parts of rlp: s1, s3, and s4
+        return(keccak256(abi.encodePacked(  // TODO: in daemon.js, also use keccak256
+                hex"f9",
+                s1,  // assume the payload length is in the range of [256, 65535], so that s1 is always bytes2
+                hex"94", _sender,
+                // s2,  // either "80" or "a0" + bytes32; assume always '80', i.e., 'null'
+                hex"808080",  // comment, url and title are "null"
+                hex"a0", hex"11be020000000000000000000000000000000000000000000000000000000000",
+                hex"a0", opRoundHistory[uints[0]].id,  // uints[0] is the "opRound" of the tx
+                s3,  // length of v1block + v1block
+                hex"a0", b32s[0],  // v1leaf
+                s4,
+                uint8(uints[3]),  // v
+                hex"a0", b32s[2],  // r
+                hex"a0", b32s[3]  // s
+            )
+        ));
     }
 
     // merkle tree and leaves
