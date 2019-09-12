@@ -386,7 +386,7 @@ contract BlockRegistry{
     function withdraw(
         bytes32[4] calldata b32s, uint[4] calldata uints,
         bytes32[] calldata proof, bool[] calldata isLeft,
-        bytes2 s1, bytes calldata s3, bytes calldata s4
+        bytes calldata s1, bytes calldata s3, bytes calldata s4
     ) external returns(bool) {
         // note: v1 is vote by the user in _opRound, v2 is the article used for claim
         // note: "b32s" and "uints" are also used in "verifySignatureWrap()" and "genTxhash()":
@@ -412,13 +412,13 @@ contract BlockRegistry{
 
     function genV2Txhash(
         address _sender, bytes32[4] memory b32s, uint[4] memory uints,
-        bytes2 s1, bytes memory s3, bytes memory s4
+        bytes memory s1, bytes memory s3, bytes memory s4
     ) public view returns(bytes32) {
         // note: txhash is hashed(rlp), some parts of rlp are fixed (such as "11be02000..." and lengths of bytes32),
         //       users need to submit three parts of rlp: s1, s3, and s4
         return(keccak256(abi.encodePacked(  // TODO: in daemon.js, also use keccak256
-                hex"f9",
-                s1,  // assume the payload length is in the range of [256, 65535], so that s1 is always bytes2
+                hex"f9",  // assume "length of payload in bytes" is always 2 bytes, i.e. 255 < lenngth(payload) < 65536
+                s1,  // "length of payload in bytes" + "_opround"
                 hex"94", _sender,
                 // s2,  // either "80" or "a0" + bytes32; assume always '80', i.e., 'null'
                 hex"808080",  // comment, url and title are "null"
