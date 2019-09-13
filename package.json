@@ -11,6 +11,6 @@
   "license": "ISC",
   "dependencies": {
     "level": "^5.0.1",
-    "truffle": "^5.0.2"
+    "truffle": "^5.0.36"
   }
 }

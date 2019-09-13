@@ -1,12 +1,12 @@
 pragma solidity ^0.5.2;
-import "./lib/safe-math.sol";
+// import "./lib/safe-math.sol";
 import "./Interfaces/MemberShipInterface.sol";
 import "./Interfaces/QOTInterface.sol";
 
 // TODO: use safemath
 
 contract BlockRegistry{
-    using SafeMath for uint256;
+    // using SafeMath for uint256;
 
     // Variables
     address[4] public managers;  // use "coreManagers" and "managers" as in "MemberShip.sol"?
