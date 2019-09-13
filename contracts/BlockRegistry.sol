@@ -383,7 +383,7 @@ contract BlockRegistry{
         // note: v1 is vote by the user in _opRound, v2 is the article used for claim
         // note: "b32s" and "uints" are also used in "verifySignatureWrap()" and "genTxhash()":
         //     b32s = [_comment, v1leaf, v2leaf, _payload, _r, _s]
-        //     uints = [_opRound, v1block, v2block, claimBlock]
+        //     uints = [_opRound, v1block, v2block, claimBlock, since]
 
         // v1block < lottery_block and v1leaf is winning ticket and current opRound 
         require(uints[1] <= opRoundHistory[uints[0]].lotteryBlockNo);
