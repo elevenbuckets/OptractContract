@@ -365,44 +365,40 @@ contract BlockRegistry{
         return merkleTreeValidator(proof, isLeft, aid, blockHistory[_sblockNo].aidMerkleRoot);
     }
 
-    function verifySignature(address _signer, bytes32 _msg, uint8 _v, bytes32 _r, bytes32 _s, bool has_prefix) public pure returns(bool){
-        // sometimes "_msg" already contain the prefix, so no need to add prefix again
-        address __signer;
-        if (has_prefix) {
-            __signer = ecrecover(_msg, _v, _r, _s);
-        } else {
-            bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-            bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, _msg));
-            __signer = ecrecover(prefixedHash, _v, _r, _s);
-        }
-        return __signer == _signer;
-    }
-
-    function verifySignatureWrap(address _signer, bytes32[4] memory b32s, uint8 _v) public pure returns(bool){
-        // withdraw() is nearly "stack-too-deep" so group some arguments and unpack here
-        return verifySignature(_signer, b32s[1], _v, b32s[2], b32s[3], true);
+    function verifySignature(address _signer, bytes32[6] memory b32s, uint8 _v) public pure returns(bool){
+        // assume the "payload" (b32s[3]) already contain prefix. Otherwise need to add prefix:
+        //      bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        //      bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, _msg));
+        //      return _signer == ecrecover(prefixedHash, _v, _r, _s);
+        return _signer == ecrecover(b32s[3], _v, b32s[4], b32s[5]);
     }
 
     function withdraw(
-        bytes32[4] calldata b32s, uint[4] calldata uints,
-        bytes32[] calldata proof, bool[] calldata isLeft,
-        bytes calldata s1, bytes calldata s3, bytes calldata s4
+        bytes32[6] calldata b32s, uint[5] calldata uints,
+        bytes32[] calldata claimProof, bool[] calldata claimIsLeft,
+        uint8 _v,
+        bytes32[] calldata proof1, bool[] calldata isLeft1
+        // bytes32[] calldata proof2, bool[] calldata isLeft2  // stack-too-deep if include these
     ) external returns(bool) {
         // note: v1 is vote by the user in _opRound, v2 is the article used for claim
         // note: "b32s" and "uints" are also used in "verifySignatureWrap()" and "genTxhash()":
-        //     b32s = [v1leaf, _payload, _r, _s]
-        //     uints = [_opRound, claimBlock, v1block, _v]
+        //     b32s = [_comment, v1leaf, v2leaf, _payload, _r, _s]
+        //     uints = [_opRound, v1block, v2block, claimBlock]
 
         // v1block < lottery_block and v1leaf is winning ticket and current opRound 
-        require(uints[2] <= opRoundHistory[uints[0]].lotteryBlockNo);
-        require(_isWinningTicket(uints[0], b32s[0]));
-        // require(uints[1] > opRoundHistory[uints[0]].lotteryBlockNo);
-        require(opRound >= uints[0] && opRound <= uints[0] + 2);  // can withdraw at this and a few following oprounds
+        require(uints[1] <= opRoundHistory[uints[0]].lotteryBlockNo);
+        require(uints[2] > opRoundHistory[uints[0]].lotteryBlockNo);
+        require(_isWinningTicket(uints[1], b32s[1]));
+        require(_isWinningTicket(uints[2], b32s[2]));
+        require(opRound >= uints[0] && opRound < uints[0] + 16);  // can withdraw at this and some opRounds later
 
         // generate txHash and proof the txHash exists
-        bytes32 txhash = genV2Txhash(msg.sender, b32s, uints, s1, s3, s4);
-        require(txExist(proof, isLeft, txhash, uints[1]));
-        require(verifySignatureWrap(msg.sender, b32s, uint8(uints[3])));
+        bytes32 txhash = genV2TxhashWrapper(msg.sender, b32s, uints);
+        require(txExist(claimProof, claimIsLeft, txhash, uints[3]));
+        require(verifySignature(msg.sender, b32s, _v));
+
+        require(txExist(proof1, isLeft1, b32s[1], uints[1]));
+        // require(txExist(proof2, isLeft2, b32s[2], uints[2]));
 
         require(opRoundClaimed[uints[0]][msg.sender] == false, "An account can only withdraw once per opRound if qualified");
         opRoundClaimed[uints[0]][msg.sender] = true;
@@ -410,28 +406,27 @@ contract BlockRegistry{
         QOTInterface(QOTAddr).mint(msg.sender, reward);
     }
 
+    function genV2TxhashWrapper(address _sender, bytes32[6] memory b32s, uint[5] memory uints) internal view returns(bytes32) {
+        return genV2Txhash(_sender, uints[0], b32s[0], uints[1], b32s[1], uints[2], b32s[2], uints[4]);
+    }
+
     function genV2Txhash(
-        address _sender, bytes32[4] memory b32s, uint[4] memory uints,
-        bytes memory s1, bytes memory s3, bytes memory s4
+        address _sender, uint _opRound, bytes32 _comment, uint v1block, bytes32 v1leaf, uint v2block, bytes32 v2leaf, uint since
     ) public view returns(bytes32) {
-        // note: txhash is hashed(rlp), some parts of rlp are fixed (such as "11be02000..." and lengths of bytes32),
-        //       users need to submit three parts of rlp: s1, s3, and s4
+        //         ['uint', 'address', 'bytes32', 'bytes32', 'bytes32', 'uint', 'bytes32', 'uint', 'bytes32', 'uint'],
+        //         [opround,  account,  comment,        aid,       oid, v1block,   v1leaf, v2block,   v2leaf,  since]
         return(keccak256(abi.encodePacked(  // TODO: in daemon.js, also use keccak256
-                hex"f9",  // assume "length of payload in bytes" is always 2 bytes, i.e. 255 < lenngth(payload) < 65536
-                s1,  // "length of payload in bytes" + "_opround"
-                hex"94", _sender,
-                // s2,  // either "80" or "a0" + bytes32; assume always '80', i.e., 'null'
-                hex"808080",  // comment, url and title are "null"
-                hex"a0", hex"11be020000000000000000000000000000000000000000000000000000000000",
-                hex"a0", opRoundHistory[uints[0]].id,  // uints[0] is the "opRound" of the tx
-                s3,  // length of v1block + v1block
-                hex"a0", b32s[0],  // v1leaf
-                s4,
-                uint8(uints[3]),  // v
-                hex"a0", b32s[2],  // r
-                hex"a0", b32s[3]  // s
-            )
-        ));
+                _opRound,
+                hex"000000000000000000000000", _sender,  // nodejs abi.encodeParameter append zeros to make it 32 bytes
+                _comment,
+                hex"11be020000000000000000000000000000000000000000000000000000000000",  // aid
+                opRoundHistory[_opRound].id,  // oid
+                v1block,
+                v1leaf,
+                v2block,
+                v2leaf,
+                since
+        )));
     }
 
     // merkle tree and leaves
@@ -457,21 +452,6 @@ contract BlockRegistry{
         }
         return targetHash == _merkleRoot;
     }
-
-    // TODO: update these calcLeaf()
-    // function calcLeaf(
-    //     uint _nonce,
-    //     bytes32 _ipfs,
-    //     uint _since,
-    //     uint _agree,
-    //     uint _disagree,
-    //     bytes32 _reply,
-    //     bytes32 _comment
-    // ) external view returns (bytes32) {
-    //     // note: the "category" field is not here yet
-    //     return keccak256(abi.encodePacked(_nonce, msg.sender, _ipfs, _since, _agree, _disagree, _reply, _comment));
-    // }
-
 
     // query
     function getBlockNo() external view returns (uint) {
