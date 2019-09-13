@@ -373,11 +373,20 @@ contract BlockRegistry{
         return _signer == ecrecover(b32s[3], _v, b32s[4], b32s[5]);
     }
 
+    function _withdrawRequires(bytes32[6] memory b32s, uint[5] memory uints) internal view {
+        // v1block < lottery_block and v1leaf is winning ticket and current opRound
+        require(uints[1] <= opRoundHistory[uints[0]].lotteryBlockNo);
+        require(uints[2] > opRoundHistory[uints[0]].lotteryBlockNo);
+        require(_isWinningTicket(uints[1], b32s[1]));
+        require(_isWinningTicket(uints[2], b32s[2]));
+        require(opRound >= uints[0] && opRound < uints[0] + 16);  // can withdraw at this and some opRounds later
+    }
+
     function withdraw(
         bytes32[6] calldata b32s, uint[5] calldata uints,
-        bytes32[] calldata claimProof, bool[] calldata claimIsLeft,
-        uint8 _v,
-        bytes32[] calldata proof1, bool[] calldata isLeft1
+        bytes32[] calldata claimProof, bytes32[] calldata proof1, bytes32[] calldata proof2,
+        uint24[3] calldata uintIsLeft,
+        uint8 _v
         // bytes32[] calldata proof2, bool[] calldata isLeft2  // stack-too-deep if include these
     ) external returns(bool) {
         // note: v1 is vote by the user in _opRound, v2 is the article used for claim
@@ -385,20 +394,14 @@ contract BlockRegistry{
         //     b32s = [_comment, v1leaf, v2leaf, _payload, _r, _s]
         //     uints = [_opRound, v1block, v2block, claimBlock, since]
 
-        // v1block < lottery_block and v1leaf is winning ticket and current opRound 
-        require(uints[1] <= opRoundHistory[uints[0]].lotteryBlockNo);
-        require(uints[2] > opRoundHistory[uints[0]].lotteryBlockNo);
-        require(_isWinningTicket(uints[1], b32s[1]));
-        require(_isWinningTicket(uints[2], b32s[2]));
-        require(opRound >= uints[0] && opRound < uints[0] + 16);  // can withdraw at this and some opRounds later
-
+        _withdrawRequires(b32s, uints);
         // generate txHash and proof the txHash exists
-        bytes32 txhash = genV2TxhashWrapper(msg.sender, b32s, uints);
-        require(txExist(claimProof, claimIsLeft, txhash, uints[3]));
+        bytes32 txhash = genV2TxhashWrapper(msg.sender, b32s, uints, _v);
+        require(txExistUintSide(claimProof, uintIsLeft[0], txhash, uints[3]));
         require(verifySignature(msg.sender, b32s, _v));
 
-        require(txExist(proof1, isLeft1, b32s[1], uints[1]));
-        // require(txExist(proof2, isLeft2, b32s[2], uints[2]));
+        require(txExistUintSide(proof1, uintIsLeft[1], b32s[1], uints[1]));
+        require(txExistUintSide(proof2, uintIsLeft[2], b32s[2], uints[2]));
 
         require(opRoundClaimed[uints[0]][msg.sender] == false, "An account can only withdraw once per opRound if qualified");
         opRoundClaimed[uints[0]][msg.sender] = true;
@@ -406,15 +409,16 @@ contract BlockRegistry{
         QOTInterface(QOTAddr).mint(msg.sender, reward);
     }
 
-    function genV2TxhashWrapper(address _sender, bytes32[6] memory b32s, uint[5] memory uints) internal view returns(bytes32) {
-        return genV2Txhash(_sender, uints[0], b32s[0], uints[1], b32s[1], uints[2], b32s[2], uints[4]);
+    function genV2TxhashWrapper(address _sender, bytes32[6] memory b32s, uint[5] memory uints, uint8 _v) internal view returns(bytes32) {
+        return genV2Txhash(_sender, uints[0], b32s[0], uints[1], b32s[1], uints[2], b32s[2], uints[4], _v, b32s[4], b32s[5]);
     }
 
     function genV2Txhash(
-        address _sender, uint _opRound, bytes32 _comment, uint v1block, bytes32 v1leaf, uint v2block, bytes32 v2leaf, uint since
+        address _sender, uint _opRound, bytes32 _comment, uint v1block, bytes32 v1leaf, uint v2block, bytes32 v2leaf, uint since,
+        uint8 _v, bytes32 _r, bytes32 _s
     ) public view returns(bytes32) {
-        //         ['uint', 'address', 'bytes32', 'bytes32', 'bytes32', 'uint', 'bytes32', 'uint', 'bytes32', 'uint'],
-        //         [opround,  account,  comment,        aid,       oid, v1block,   v1leaf, v2block,   v2leaf,  since]
+        //   ['uint', 'address', 'bytes32', 'bytes32', 'bytes32', 'uint', 'bytes32', 'uint', 'bytes32', 'uint', 'uint8', 'bytes32', 'bytes32]],
+        //   [opround,  account,  comment,        aid,       oid, v1block,   v1leaf, v2block,   v2leaf,  since, v, r, s]
         return(keccak256(abi.encodePacked(  // TODO: in daemon.js, also use keccak256
                 _opRound,
                 hex"000000000000000000000000", _sender,  // nodejs abi.encodeParameter append zeros to make it 32 bytes
@@ -425,8 +429,28 @@ contract BlockRegistry{
                 v1leaf,
                 v2block,
                 v2leaf,
-                since
+                since,
+                hex"00000000000000000000000000000000000000000000000000000000000000",  _v,
+                _r, _s
         )));
+    }
+
+    function txExistUintSide(bytes32[] memory proof, uint24 isLeftInt, bytes32 txHash, uint _sblockNo) public view returns (bool){
+        bool[] memory isLeft = _uintToBoolArr(isLeftInt, uint8(proof.length));
+        return merkleTreeValidator(proof, isLeft, txHash, blockHistory[_sblockNo].merkleRoot);
+    }
+
+    function _uintToBoolArr(uint24 x, uint8 length) public pure returns (bool[] memory isLeft){
+        // for example, if x=10, length=6 => x in binary is '001010' => bool array [f, f, t, f, t, f]
+        require(length < 24);
+        isLeft = new bool[](length);
+        for (uint i=0; i<length; i++){
+            if (x%2 == 1) {
+                isLeft[length-i-1] = true;
+            }
+            x = x >> 1;
+        }
+        return(isLeft);
     }
 
     // merkle tree and leaves
