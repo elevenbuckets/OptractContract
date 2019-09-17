@@ -365,7 +365,7 @@ contract BlockRegistry{
         return merkleTreeValidator(proof, isLeft, aid, blockHistory[_sblockNo].aidMerkleRoot);
     }
 
-    function verifySignature(address _signer, bytes32[6] memory b32s, uint8 _v) public pure returns(bool){
+    function verifySignatureWithPrefix(address _signer, bytes32[6] memory b32s, uint8 _v) public pure returns(bool){
         // assume the "payload" (b32s[3]) already contain prefix. Otherwise need to add prefix:
         //      bytes memory prefix = "\x19Ethereum Signed Message:\n32";
         //      bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, _msg));
@@ -373,33 +373,31 @@ contract BlockRegistry{
         return _signer == ecrecover(b32s[3], _v, b32s[4], b32s[5]);
     }
 
-    function _withdrawRequires(bytes32[6] memory b32s, uint[5] memory uints) internal view {
-        // v1block < lottery_block and v1leaf is winning ticket and current opRound
-        require(uints[1] <= opRoundHistory[uints[0]].lotteryBlockNo);
-        require(uints[2] > opRoundHistory[uints[0]].lotteryBlockNo);
-        require(_isWinningTicket(uints[1], b32s[1]));
-        require(_isWinningTicket(uints[2], b32s[2]));
-        require(opRound >= uints[0] && opRound < uints[0] + 16);  // can withdraw at this and some opRounds later
-    }
-
     function withdraw(
         bytes32[6] calldata b32s, uint[5] calldata uints,
         bytes32[] calldata claimProof, bytes32[] calldata proof1, bytes32[] calldata proof2,
         uint24[3] calldata uintIsLeft,
         uint8 _v
-        // bytes32[] calldata proof2, bool[] calldata isLeft2  // stack-too-deep if include these
     ) external returns(bool) {
         // note: v1 is vote by the user in _opRound, v2 is the article used for claim
-        // note: "b32s" and "uints" are also used in "verifySignatureWrap()" and "genTxhash()":
+        // note: "b32s" and "uints" are also used in "verifySignatureWithPrefix()" and "genV2Txhash()":
         //     b32s = [_comment, v1leaf, v2leaf, _payload, _r, _s]
         //     uints = [_opRound, v1block, v2block, claimBlock, since]
+        //     uintIsLeft =  [claimIsLeft, v1IsLeft, v2IsLeft]
+        // note about restrictions: the total amount of tx per block is restricted to 2**24, it means
+        //     `0 < proof.length <= 24` and `0 < isLeft.length <= 24`; the bool array `isLeft` of length
+        //     24 can convert to a uint24 (see `_uintToBoolArr()`)
 
-        _withdrawRequires(b32s, uints);
-        // generate txHash and proof the txHash exists
+        require(uints[1] <= opRoundHistory[uints[0]].lotteryBlockNo);
+        require(uints[2] > opRoundHistory[uints[0]].lotteryBlockNo);
+        require(_isWinningTicket(uints[1], b32s[1]));
+        require(_isWinningTicket(uints[2], b32s[2]));
+        require(opRound >= uints[0] && opRound < uints[0] + 16);  // can withdraw at this and some opRounds later
+
+        // verify signature, generate txHash and proof the existence of all txHashes
+        require(verifySignatureWithPrefix(msg.sender, b32s, _v));
         bytes32 txhash = genV2TxhashWrapper(msg.sender, b32s, uints, _v);
         require(txExistUintSide(claimProof, uintIsLeft[0], txhash, uints[3]));
-        require(verifySignature(msg.sender, b32s, _v));
-
         require(txExistUintSide(proof1, uintIsLeft[1], b32s[1], uints[1]));
         require(txExistUintSide(proof2, uintIsLeft[2], b32s[2], uints[2]));
 
@@ -436,13 +434,15 @@ contract BlockRegistry{
     }
 
     function txExistUintSide(bytes32[] memory proof, uint24 isLeftInt, bytes32 txHash, uint _sblockNo) public view returns (bool){
+        require(_sblockNo < nowSblockNo);
+        require(blockHistory[_sblockNo].merkleRoot != 0x0);
         bool[] memory isLeft = _uintToBoolArr(isLeftInt, uint8(proof.length));
         return merkleTreeValidator(proof, isLeft, txHash, blockHistory[_sblockNo].merkleRoot);
     }
 
     function _uintToBoolArr(uint24 x, uint8 length) public pure returns (bool[] memory isLeft){
         // for example, if x=10, length=6 => x in binary is '001010' => bool array [f, f, t, f, t, f]
-        require(length < 24);
+        require(length >= 1 && length <= 24);
         isLeft = new bool[](length);
         for (uint i=0; i<length; i++){
             if (x%2 == 1) {
