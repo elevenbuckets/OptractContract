@@ -186,7 +186,7 @@ contract MemberShip {
         return(memberDB[_id].tier > 128);  // tier 128 should not exist
     }
 
-    function addrIsVipTier(uint _addr) public view returns(bool){
+    function addrIsVipTier(address _addr) public view returns(bool){
         return(memberDB[addressToId[_addr]].tier > 128);  // tier 128 should not exist
     }
 
