@@ -20,7 +20,7 @@ contract MemberShip {
     struct MemberInfo {
         address addr;
         uint8 tier;  // 8 bit of choices. Default tier is 1; tier>128 are vip (i.e., highest bit is 1). 0 and 128 are not used
-                     // Or, use 1-127 as normal user tiers, and the tier +128 are vip user (with longer memberPeriod)
+                     // update 2019 Sep 18: tier 129 and above are now "publisher". Keep existing code, so "vip" = "publisher"
         uint since;  // beginning block.timestamp of previous membership
         uint penalty;  // the membership is valid until: since + memberPeriod - penalty;
         bytes32 kycid;  // know your customer id, leave it for future
@@ -124,6 +124,15 @@ contract MemberShip {
     //       semi-automatically generate a deploy file, then write to main chain. Acutually I can
     //       try it from rinkeby to rinkeby!
     // TODO: 
+
+    function giveMembership(address buyer, uint8 tier) public coreManagerOnly returns(bool) {
+        // no need to pay!
+        require(addressToId[buyer] == 0);  // the user is not yet a member
+        // require tier=?
+        _assignMembership(buyer, tier);
+        return true;
+    }
+
     function buyMembership() public payable feePaid whenNotPaused returns (bool) {
         require(addressToId[msg.sender] == 0);  // the user is not yet a member
         // TODO: uint8 _tier = determineTier(msg.sender); _assignMembership(msg.sender, _tier);
@@ -175,6 +184,10 @@ contract MemberShip {
 
     function isVipTier(uint _id) public view returns(bool){
         return(memberDB[_id].tier > 128);  // tier 128 should not exist
+    }
+
+    function addrIsVipTier(uint _addr) public view returns(bool){
+        return(memberDB[addressToId[_addr]].tier > 128);  // tier 128 should not exist
     }
 
     function _removeVipTier(uint _id) internal returns(uint8) {
