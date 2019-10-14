@@ -13,6 +13,7 @@ module.exports = function(deployer) {
             return deployer.deploy(BlockRegistry, MemberShip.address, QOT.address).then( ()=>{
                 // iQOT.setMining(BlockRegistry.address, 0);  // leave it for future, or manually
                 return iMemberShip.addAppWhitelist(BlockRegistry.address, 3);  // 0, 1, 2 are for coreManagers
+                // TODO: deploy flagContract (or do it separately)
             })
         })
     })

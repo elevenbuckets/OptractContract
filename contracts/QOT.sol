@@ -14,6 +14,7 @@ contract QOT is StandardToken {
        _;
     }
 
+    // TODO: move miningOnly() and probably some access control to QOTaccessControl.sol?
     modifier miningOnly() {
         require(msg.sender != address(0));
         require(msg.sender == mining[0] || msg.sender == mining[1] || msg.sender == mining[2] ||

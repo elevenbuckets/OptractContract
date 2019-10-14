@@ -13,6 +13,7 @@ contract BlockRegistry{
     address[16] public validators;
     address public memberContractAddr;
     address public QOTAddr;
+    address public flagContractAddr;
     uint public nowSblockNo;  // start from 1
     uint public sblockTimeStep = 15 minutes;  // it's a minimum timestep
     // bool public opRoundStatus = true;  // need `true` for 1st round; or simply use "pause/unpause"?
@@ -593,6 +594,12 @@ contract BlockRegistry{
     }
 
     // upgradable
+    function setFlagContractAddr(address _addr) public managerOnly returns(bool) {
+        // require(_addr != 0); // can be address(0) in the beginning
+        flagContractAddr = _addr;
+        return true;
+    }
+
     function setValidator(address _newValidator, uint _idx) public managerOnly returns (bool) {
         require(_newValidator != address(0));
         require(_idx >=0 && _idx < 16);

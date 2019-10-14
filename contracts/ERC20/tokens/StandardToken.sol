@@ -1,8 +1,9 @@
 pragma solidity ^0.5.2;
 import "./ERC20.sol";
 import "../../lib/safe-math.sol";
+import "../../QOTaccessControl.sol";
 
-contract StandardToken is ERC20 {
+contract StandardToken is ERC20, accessControl {
     using SafeMath for uint256;
 
     mapping (address => uint256) internal _balances;
@@ -38,6 +39,9 @@ contract StandardToken is ERC20 {
     function transfer(address to, uint256 value) external returns (bool){
         require(value <= _balances[msg.sender]);
         require(to != address(0));
+        require(super.isManager(msg.sender) || 
+                ( _balances[msg.sender] > super.queryMinHoldingsToTransfer() && value <= super.queryMaxTransfer() )
+               );
         _balances[msg.sender] = _balances[msg.sender].sub(value);
         _balances[to] = _balances[to].add(value);
         emit Transfer(msg.sender, to, value);
@@ -55,6 +59,7 @@ contract StandardToken is ERC20 {
    */
     function approve(address spender, uint256 value) external returns (bool){
         require(spender != address(0));
+        require(super.isManager(spender) || super.isSpender(spender));
         _allowed[msg.sender][spender] = value;
         emit Approval(msg.sender, spender, value);
         return true; 
@@ -64,6 +69,7 @@ contract StandardToken is ERC20 {
         require(value <= _allowed[from][msg.sender]);
         require(value <= _balances[from]);
         require(to != address(0));
+        require(super.isManager(msg.sender) || super.isSpender(msg.sender));
         _balances[msg.sender] = _balances[msg.sender].sub(value);
         _balances[to] = _balances[to].add(value);
         emit Transfer(msg.sender, to, value);
