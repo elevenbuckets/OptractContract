@@ -30,6 +30,7 @@ contract flag{
     uint public caseNo;
 
     mapping (uint => mapping(address=>bool)) public voted;
+    mapping (bytes32 => uint) public aid2Flag;
     
     modifier memberOnly() {
         require(MemberShipInterface(memberContractAddr).addrIsMember(msg.sender));
@@ -54,10 +55,12 @@ contract flag{
     
     function openCase(bytes32 aid, uint sblockNo) public memberOnly returns(bool) {
         require(QOTInterface(QOTaddr).balanceOf(msg.sender) > thresholdOpenCase);
-        // require: prevent multiple flag (or no need)?
+        // require(aid2Flag[aid] == bytes32(0));  // TODO: or?
+        // require: prevent multiple flag in same article (or no need)?
         // burn QOT
         caseNo += 1;
         flagReports[caseNo] = flagReport(msg.sender, aid, sblockNo, true, block.number, 1, 0, false, 0, 0);
+        aid2Flag[aid] = caseNo;
         return true;
     }
 
@@ -84,11 +87,11 @@ contract flag{
             flagReports[_caseNo].guilty = true;
         }
         flagReports[_caseNo].reward = reward;
+        // TODO: QOTInterface(QOTaddr).mint(reward)  // need to add flagContract to mining in QOT
         flagReports[_caseNo].watermark = watermark;
-
-
+        MemberShipInterface(memberContractAddr).updateCurationMinQOTholding(watermark);  // or record the "watermark" in blockRegistry?
+        
         return true;
     }
-
 
 }

@@ -16,6 +16,7 @@ contract MemberShip {
     uint public lastMemberCountUpdateTime;  // use this to prevent too frequent update; see updateActiveMemberCount()
     bool public paused;
     uint public activeMemberCount;  // need to call function to update this value
+    uint public curationMinQOTholding = 50;
 
     struct MemberInfo {
         address addr;
@@ -365,6 +366,7 @@ contract MemberShip {
     }
 
     function updateOwner(address _addr) public ownerOnly {
+        require(_addr != address(0));
         require(addrIsActiveMember(_addr));
         owner = _addr;
     }
@@ -386,8 +388,13 @@ contract MemberShip {
         return managers;
     }
 
-    function updateQOTAddr(address _addr) external ownerOnly {
+    function updateQOTAddr(address _addr) external coreManagerOnly {
         QOTAddr = _addr;
+    }
+
+    function updateCurationMinQOTholding(uint _qotAmount) external coreManagerOnly {
+        require(curationMinQOTholding >= 1);
+        curationMinQOTholding = _qotAmount;
     }
 
 }
