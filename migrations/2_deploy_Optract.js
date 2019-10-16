@@ -15,7 +15,7 @@ module.exports = function(deployer) {
                 return deployer.deploy(Flag, MemberShip.address, BlockRegistry.address, QOT.address).then(()=>{
                     iQOT.setMining(BlockRegistry.address, 0);
                     iQOT.setMining(MemberShip.address, 1);  // mainly for giveMembership
-                    iQOT.setMining(Flag.address, 1);  // mainly for giveMembership
+                    iQOT.setMining(Flag.address, 2);  // mainly for giveMembership
                     return iMemberShip.addAppWhitelist(BlockRegistry.address, 3);  // 0, 1, 2 are for coreManagers
                 })
             })
