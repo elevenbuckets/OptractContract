@@ -137,6 +137,20 @@
   },
   {
     "constant": true,
+    "inputs": [],
+    "name": "curationMinQOTholding",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
     "inputs": [
       {
         "name": "",
@@ -819,6 +833,20 @@
       }
     ],
     "name": "updateQOTAddr",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_qotAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "updateCurationMinQOTholding",
     "outputs": [],
     "payable": false,
     "stateMutability": "nonpayable",
