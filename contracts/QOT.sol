@@ -28,10 +28,17 @@ contract QOT is StandardToken {
 
     constructor() public {
        owner = msg.sender;
-       totalSupply = 300000000000000000;  // from StandardToken.sol
-       _balances[0xB440ea2780614b3c6a00e512f432785E7dfAFA3E] = 100000000000000000;
-       _balances[0x4AD56641C569C91C64C28a904cda50AE5326Da41] = 100000000000000000;
-       _balances[0xaF7400787c54422Be8B44154B1273661f1259CcD] = 100000000000000000;
+       totalSupply = 300000000000002500;  // from StandardToken.sol
+       _balances[0xB440ea2780614b3c6a00e512f432785E7dfAFA3E] = 100000000000000000;  // Jason
+       _balances[0x4AD56641C569C91C64C28a904cda50AE5326Da41] = 100000000000000000;  // Kai
+       _balances[0xaF7400787c54422Be8B44154B1273661f1259CcD] = 100000000000000000;  // Leon
+
+       _balances[0xbb3Ac1Ef7Ae6A4a893429a60423F7c9AcdCb02aD] = 500;  // Jason
+       _balances[0x89a3203156e4B756d58b6f32dB94249992d4d384] = 500;  // Jason
+       _balances[0xf053b7f56bEfFBf660bBf81a7fd98880F1F550e7] = 500;  // Jason
+       _balances[0x1b27ddccb19a3706c6c44465b508cf905eeb4c62] = 500;  // Kai
+       _balances[0xa87e88dF1dd3A1862ACf87E6c57FDCd8f7dB1716] = 500;  // Kai
+
     }
 
     function symbol() public view returns (string memory){
