@@ -21,7 +21,7 @@ contract flag{
     address public blockRegistryAddr;
     address public QOTaddr;
     uint public thresholdOpenCase;
-    uint public voteMinQOTholding = 10;
+    uint public voteMinQOTholding = 10000000000000;
 
     struct flagReport {
         address sender;

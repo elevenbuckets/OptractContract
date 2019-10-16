@@ -14,7 +14,7 @@ contract BlockRegistry{
     address public memberContractAddr;
     address public QOTAddr;
     uint public nowSblockNo;  // start from 1
-    uint public sblockTimeStep = 15 minutes;  // it's a minimum timestep
+    uint public sblockTimeStep = 5 minutes;  // it's a minimum timestep
     // bool public opRoundStatus = true;  // need `true` for 1st round; or simply use "pause/unpause"?
     uint public opRound;
     uint public articleCount;
@@ -29,7 +29,7 @@ contract BlockRegistry{
     uint8 public numRange = 8;  // it means pick x out of 16 numbers; should eventually make it constant
     uint public maxVoteTime1 = 12 hours;  // duration of v1-vote
     uint public maxVoteTime2 = 12 hours;  // duration of v2-claim
-    uint public reward = 100;  // should be a global (constant) variable. Or fix a value in QOT
+    uint public reward = 2000000000000;  // should be a global (constant) variable. Or fix a value in QOT
 
     struct blockStat{
         address validator;
@@ -175,8 +175,8 @@ contract BlockRegistry{
         //       (v2) may not happen if (v1) takes more than maxVoteTime.
         // comment some "require"s for test purpose
         // require(block.timestamp >= blockHistory[nowSblockNo] + sblockTimeStep, 'too soon');
-        require(block.timestamp >= blockHistory[nowSblockNo-1].timestamp + 15 minutes);  // 2 min is for test purpose, should be 1 hour(?)
-        require(block.number >= blockHistory[nowSblockNo-1].blockHeight + 15);  // 5 is for test purpose, should be ?
+        require(block.timestamp >= blockHistory[nowSblockNo-1].timestamp + sblockTimeStep);  // 2 min is for test purpose, should be 1 hour(?)
+        require(block.number >= blockHistory[nowSblockNo-1].blockHeight + 1);
         require(_merkleRoot != 0x0 && _ipfsAddr != 0x0);
         require(blockHistory[nowSblockNo-1].merkleRoot != _merkleRoot && blockHistory[nowSblockNo-1].ipfsAddr != _ipfsAddr);  // prevent re-submission
         require(blockHistory[nowSblockNo].blockHeight == 0 && blockHistory[nowSblockNo].merkleRoot == 0x0 &&
@@ -593,6 +593,12 @@ contract BlockRegistry{
     }
 
     // upgradable
+    function setSblockTimeStep(uint _time) public managerOnly returns(bool) {
+        require(_time > 60);
+        sblockTimeStep = _time;
+        return true;
+    }
+
     function setValidator(address _newValidator, uint _idx) public managerOnly returns (bool) {
         require(_newValidator != address(0));
         require(_idx >=0 && _idx < 16);

@@ -17,7 +17,7 @@ contract MemberShip {
     uint public lastMemberCountUpdateTime;  // use this to prevent too frequent update; see updateActiveMemberCount()
     bool public paused;
     uint public activeMemberCount;  // need to call function to update this value
-    uint public curationMinQOTholding = 50;
+    uint public curationMinQOTholding = 50000000000000;
     bool public neverExpire = true;
 
     struct MemberInfo {
@@ -131,8 +131,8 @@ contract MemberShip {
     function giveMembership(address buyer, uint8 tier) public coreManagerOnly returns(bool) {
         // no need to pay! tier should be 1
         require(addressToId[buyer] == 0);  // the user is not yet a member
-        QOTInterface(QOTAddr).mint(msg.sender, 10);
         _assignMembership(buyer, tier);
+        QOTInterface(QOTAddr).mint(msg.sender, 10000000000000);
         return true;
     }
 
@@ -140,7 +140,7 @@ contract MemberShip {
         require(addressToId[msg.sender] == 0);  // the user is not yet a member
         // TODO: uint8 _tier = determineTier(msg.sender); _assignMembership(msg.sender, _tier);
         _assignMembership(msg.sender, 1);
-        QOTInterface(QOTAddr).mint(msg.sender, 10);
+        QOTInterface(QOTAddr).mint(msg.sender, 10000000000000);
         return true;
     }
 
@@ -409,7 +409,7 @@ contract MemberShip {
         require(msg.sender != address(0));
         require((msg.sender == coreManagers[0] || msg.sender == coreManagers[1] || msg.sender == coreManagers[2]) ||
                 msg.sender == flagContractAddr);
-        // require(_qotAmount >= 1);  // TODO: could it be zero?
+        // require(_qotAmount >= 1000000000000);  // TODO: could it be zero?
         curationMinQOTholding = _qotAmount;
     }
 
