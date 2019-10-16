@@ -21,10 +21,11 @@ interface BlockRegistryInterface {
     function txExist(bytes32[] calldata proof, bool[] calldata isLeft, bytes32 txHash, uint _sblockNo) external view returns (bool);
     function aidExist(bytes32[] calldata proof, bool[] calldata isLeft, bytes32 aid, uint _sblockNo) external view returns (bool);
     function setReward(uint _reward) external;
-    function claimReward(
-        uint _opRound, bytes32[] calldata proof, bool[] calldata isLeft, bytes32 txHash, uint _sblockNo,
-        bytes32 _payload, uint8 _v, bytes32 _r, bytes32 _s
-    ) external view returns(bool);
+    function withdraw(
+        bytes32[6] calldata b32s, uint[5] calldata uints,
+        bytes32[] calldata claimProof, bytes32[] calldata proof1, bytes32[] calldata proof2,
+        uint24[3] calldata uintIsLeft, uint8 _v
+    ) external returns(bool);
     function merkleTreeValidator(bytes32[] calldata proof, bool[] calldata isLeft, bytes32 targetLeaf, bytes32 _merkleRoot) external pure returns (bool);
     // function calcLeaf(uint _nonce, bytes32 _ipfs, uint _since, uint _agree, uint _disagree, bytes32 _reply, bytes32 _comment) external view returns (bytes32);
     function getBlockNo() external view returns (uint);

@@ -31,6 +31,7 @@ interface MemberShipInterface {
     function updateManager(address _addr, uint _id) external;
     function updateCoreManager(address _addr, uint _id) external returns(address);
     function updateQOTAddr(address _addr) external;
-    function updateCurationMinQOTholding(uint _qotAmount) external ;
+    function setFlagContractAddr(address _addr) external returns(bool);
+    function updateCurationMinQOTholding(uint _qotAmount) external;
 
 }

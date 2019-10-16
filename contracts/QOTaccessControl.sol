@@ -102,5 +102,4 @@ contract accessControl {
         return (minHoldingsToTransfer, maxTransfer);
     }
 
-
 }

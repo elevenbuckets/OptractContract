@@ -9,6 +9,7 @@ contract MemberShip {
     address[3] public coreManagers;
     address[8] public managers;
     address public QOTAddr;
+    address public flagContractAddr;
     uint public totalId;  // id 0 is not used and will start from 1
     uint public fee = 0.01 ether;
     // uint public memberPeriod = 160000;  // 40000 blocks ~ a week in rinkeby, for test only
@@ -17,6 +18,7 @@ contract MemberShip {
     bool public paused;
     uint public activeMemberCount;  // need to call function to update this value
     uint public curationMinQOTholding = 50;
+    bool public neverExpire = true;
 
     struct MemberInfo {
         address addr;
@@ -127,9 +129,9 @@ contract MemberShip {
     // TODO: 
 
     function giveMembership(address buyer, uint8 tier) public coreManagerOnly returns(bool) {
-        // no need to pay!
+        // no need to pay! tier should be 1
         require(addressToId[buyer] == 0);  // the user is not yet a member
-        // require tier=?
+        QOTInterface(QOTAddr).mint(msg.sender, 10);
         _assignMembership(buyer, tier);
         return true;
     }
@@ -138,6 +140,7 @@ contract MemberShip {
         require(addressToId[msg.sender] == 0);  // the user is not yet a member
         // TODO: uint8 _tier = determineTier(msg.sender); _assignMembership(msg.sender, _tier);
         _assignMembership(msg.sender, 1);
+        QOTInterface(QOTAddr).mint(msg.sender, 10);
         return true;
     }
 
@@ -274,12 +277,17 @@ contract MemberShip {
 
     function idIsActiveMember(uint _id) public view returns (bool) {
         require (_id != 0 || memberDB[_id].since > 0);
-        if (idExpireTime(_id) > block.timestamp) {
-            return true;  // not yet expire
+        if (neverExpire) {
+            return true;
         } else {
-            return false;
+            if (idExpireTime(_id) > block.timestamp) {
+                return true;  // not yet expire
+            } else {
+                return false;
+            }
         }
     }
+
 
     function idExpireTime(uint _id) public view returns (uint) {
         uint _bonus;
@@ -336,7 +344,6 @@ contract MemberShip {
         return lastMemberCountUpdateTime;
     }
 
-
     function updateActiveMemberCount(uint _count) public coreManagerOnly returns (uint){
         // coreManagers should provide values base on countActiveMembers()
         require(_count >= 1);
@@ -346,6 +353,7 @@ contract MemberShip {
     }
 
     function countActiveMembers() public view returns (uint) {
+        // this is probably meaningless if "neverExpire" is true
         uint _count = 0;
         for (uint i = 0; i <= totalId; i++) {
             if (idExpireTime(i) > block.timestamp) {
@@ -363,6 +371,11 @@ contract MemberShip {
     function unpause() public ownerOnly whenPaused {
         // set to ownerOnly in case accounts of other managers are compromised
         paused = false;
+    }
+
+    function setNeverExpire(bool _neverExpire) public coreManagerOnly returns(bool) {
+        neverExpire = _neverExpire;
+        return true;
     }
 
     function updateOwner(address _addr) public ownerOnly {
@@ -392,9 +405,18 @@ contract MemberShip {
         QOTAddr = _addr;
     }
 
-    function updateCurationMinQOTholding(uint _qotAmount) external coreManagerOnly {
-        require(curationMinQOTholding >= 1);
+    function updateCurationMinQOTholding(uint _qotAmount) external {
+        require(msg.sender != address(0));
+        require((msg.sender == coreManagers[0] || msg.sender == coreManagers[1] || msg.sender == coreManagers[2]) ||
+                msg.sender == flagContractAddr);
+        // require(_qotAmount >= 1);  // TODO: could it be zero?
         curationMinQOTholding = _qotAmount;
+    }
+
+    function setFlagContractAddr(address _addr) public managerOnly returns(bool) {
+        // require(_addr != 0); // can be address(0) in the beginning
+        flagContractAddr = _addr;
+        return true;
     }
 
 }

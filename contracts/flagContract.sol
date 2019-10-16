@@ -1,30 +1,40 @@
 pragma solidity ^0.5.2;
+// This is a contract to help determine inappropriate contents in Optract. The procedure of a
+// "flag-event" is:
+// * A qualified member open a "case"
+// * Qualified members "jury-vote"
+// * After sometime (min 72 hours) the validator close the case and make changes if necessary.
+// since in Optract, members has to hold enough QOT to vote. The amount of minumum holding of
+// QOT by a user in order to curate, or "watermark", is adjustable through QOTaccessControl.sol
+// and also here while closing a case.
+// 
+// 
 // import "./lib/safe-math.sol";
 import "./Interfaces/QOTInterface.sol";
 import "./Interfaces/MemberShipInterface.sol";
 import "./Interfaces/BlockRegistryInterface.sol";
 
-// TODO: implement the rest later
+// TODO: 
 
 contract flag{
     address public memberContractAddr;
     address public blockRegistryAddr;
     address public QOTaddr;
     uint public thresholdOpenCase;
+    uint public voteMinQOTholding = 10;
 
     struct flagReport {
         address sender;
-        bytes32 aid;  // also txHash?
-        uint sblockNo;
+        bytes32 aid;  // and/or txHash?
+        uint aidSblockNo;
         bool inProgress;  // true (in progress) or false (closed)
-        uint caseEthBlock;  
+        uint since;  // current time
         // result
-        uint agreeVotes;
-        uint disagreeVotes;
+        uint agreeFlag;
+        uint disagreeFlag;
         bool guilty;
         uint reward;  // TODO: find a mechanism to distribute
         uint watermark;  // TODO: set this value else where; TODO: find a better name
-        // TODO: add results
     }
     mapping (uint => flagReport) public flagReports;
     uint public caseNo;
@@ -59,21 +69,45 @@ contract flag{
         // require: prevent multiple flag in same article (or no need)?
         // burn QOT
         caseNo += 1;
-        flagReports[caseNo] = flagReport(msg.sender, aid, sblockNo, true, block.number, 1, 0, false, 0, 0);
+        // assume the opener vote agree by default
+        flagReports[caseNo] = flagReport(msg.sender, aid, sblockNo, true, block.timestamp, 1, 0, false, 0, 0);
         aid2Flag[aid] = caseNo;
         return true;
     }
 
+    function queryCase(uint _id) public view returns(address, bytes32, uint, bool, uint) {
+        require(_id >= caseNo);
+        return (flagReports[_id].sender,
+                flagReports[_id].aid,
+                flagReports[_id].aidSblockNo,
+                flagReports[_id].inProgress,
+                flagReports[_id].since
+               );
+    }
+
+    function queryCaseResult(uint _id) public view returns(bytes32, bool, uint, uint, bool, uint, uint) {
+        require(_id >= caseNo);
+        // stack-too-deep so split some to here
+        return (flagReports[_id].aid,
+                flagReports[_id].inProgress,
+                flagReports[_id].agreeFlag,
+                flagReports[_id].disagreeFlag,
+                flagReports[_id].guilty,
+                flagReports[_id].reward,
+                flagReports[_id].watermark
+               );
+    }
+
     function juryVote(bool agree, uint _caseNo) public memberOnly returns(bool){
         require(flagReports[_caseNo].inProgress);
-        require(QOTInterface(QOTaddr).balanceOf(msg.sender) > 10);  // 1? 10? 50?
+        require(QOTInterface(QOTaddr).balanceOf(msg.sender) > voteMinQOTholding);
         require(voted[_caseNo][msg.sender] == false);
         // burn QOT?
         voted[_caseNo][msg.sender] = true;
         if (agree) {
-            flagReports[caseNo].agreeVotes += 1;
+            flagReports[caseNo].agreeFlag+= 1;
         } else {
-            flagReports[caseNo].disagreeVotes += 1;
+            flagReports[caseNo].disagreeFlag += 1;
 
         }
         return true;
@@ -81,17 +115,23 @@ contract flag{
 
     function closeCase(uint _caseNo, uint reward, uint watermark) public validatorOnly returns(bool) {
         require(block.number > block.number + 1000);  // TODO: decide a minimum time
-        require(reward > 1);
+        // require(reward > 1);
+        require(watermark > 1); // also see updateCurationMinQOTholding() in MemberShip.sol 
         flagReports[_caseNo].inProgress = false;
-        if (flagReports[_caseNo].agreeVotes > flagReports[_caseNo].disagreeVotes) {
+        if (flagReports[_caseNo].agreeFlag > flagReports[_caseNo].disagreeFlag) {
             flagReports[_caseNo].guilty = true;
         }
         flagReports[_caseNo].reward = reward;
-        // TODO: QOTInterface(QOTaddr).mint(reward)  // need to add flagContract to mining in QOT
+        // TODO: reward the winner(s)
+        // QOTInterface(QOTaddr).mint(reward)  // TODO: need to add flagContractAddr to "mining" in QOT
         flagReports[_caseNo].watermark = watermark;
         MemberShipInterface(memberContractAddr).updateCurationMinQOTholding(watermark);  // or record the "watermark" in blockRegistry?
         
         return true;
+    }
+
+    function setVoteMinQOTholding(uint _x) public returns(bool){
+        voteMinQOTholding = _x;
     }
 
 }
