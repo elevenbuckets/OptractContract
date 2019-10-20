@@ -73,11 +73,13 @@ contract BlockRegistry{
                      0xaF7400787c54422Be8B44154B1273661f1259CcD,
                      address(0)];
         validators = [ 0xB440ea2780614b3c6a00e512f432785E7dfAFA3E,
-                       0x4AD56641C569C91C64C28a904cda50AE5326Da41,
+                       0x4AD56641C569C91C64C28a904cda50AE5326Da41,  // kai
                        0xaF7400787c54422Be8B44154B1273661f1259CcD,
+                       0x664F5e320399B2fc5f32591c3a1A82e2b761769E,  // kai
+                       0x94a34659aC860FE7e7985096FB70217fb2cc8DEc,  // kai
                        address(0), address(0), address(0), address(0), address(0),
                        address(0), address(0), address(0), address(0), address(0),
-                       address(0), address(0), address(0)];
+                       address(0)];
         blockHistory[0] = blockStat(msg.sender, block.number, 0x0, 0x0, block.timestamp,
                                     0, 0, 0, 0x0, 0x0, 0x0);
         // opRoundHistory[0] = opRoundStruct(0x0000000000000000000000000000000000000000000000000000000000000001,
@@ -389,7 +391,7 @@ contract BlockRegistry{
         //     24 can convert to a uint24 (see `_uintToBoolArr()`)
 
         require(uints[1] <= opRoundHistory[uints[0]].lotteryBlockNo);
-        require(uints[2] > opRoundHistory[uints[0]].lotteryBlockNo);
+        require(uints[2] <= opRoundHistory[uints[0]].lotteryBlockNo);
         require(_isWinningTicket(uints[1], b32s[1]));
         require(_isWinningTicket(uints[2], b32s[2]));
         require(opRound >= uints[0] && opRound < uints[0] + 16);  // can withdraw at this and some opRounds later
@@ -419,7 +421,7 @@ contract BlockRegistry{
         //   [opround,  account,  comment,        aid,       oid, v1block,   v1leaf, v2block,   v2leaf,  since, v, r, s]
         return(keccak256(abi.encodePacked(  // TODO: in daemon.js, also use keccak256
                 _opRound,
-                hex"000000000000000000000000", _sender,  // nodejs abi.encodeParameter append zeros to make it 32 bytes
+                hex"000000000000000000000000", _sender,  // nodejs abi.encodeParameter append zeros to make _sender 32 bytes
                 _comment,
                 hex"11be020000000000000000000000000000000000000000000000000000000000",  // aid
                 opRoundHistory[_opRound].id,  // oid
@@ -428,7 +430,7 @@ contract BlockRegistry{
                 v2block,
                 v2leaf,
                 since,
-                hex"00000000000000000000000000000000000000000000000000000000000000",  _v,
+                hex"00000000000000000000000000000000000000000000000000000000000000",  _v,  // make _v 32 bytes
                 _r, _s
         )));
     }
