@@ -419,7 +419,7 @@ contract BlockRegistry{
     ) public view returns(bytes32) {
         //   ['uint', 'address', 'bytes32', 'bytes32', 'bytes32', 'uint', 'bytes32', 'uint', 'bytes32', 'uint', 'uint8', 'bytes32', 'bytes32]],
         //   [opround,  account,  comment,        aid,       oid, v1block,   v1leaf, v2block,   v2leaf,  since, v, r, s]
-        return(keccak256(abi.encodePacked(  // TODO: in daemon.js, also use keccak256
+        return(keccak256(abi.encodePacked(  // in daemon.js, use web3.utils.soliditySha3()
                 _opRound,
                 hex"000000000000000000000000", _sender,  // nodejs abi.encodeParameter append zeros to make _sender 32 bytes
                 _comment,
