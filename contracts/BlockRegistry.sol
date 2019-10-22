@@ -380,7 +380,7 @@ contract BlockRegistry{
         bytes32[] calldata claimProof, bytes32[] calldata proof1, bytes32[] calldata proof2,
         uint24[3] calldata uintIsLeft,
         uint8 _v
-    ) external returns(bool) {
+    ) external {
         // note: v1 is vote by the user in _opRound, v2 is the article used for claim
         // note: "b32s" and "uints" are also used in "verifySignatureWithPrefix()" and "genV2Txhash()":
         //     b32s = [_comment, v1leaf, v2leaf, _payload, _r, _s]
@@ -392,8 +392,8 @@ contract BlockRegistry{
 
         require(uints[1] <= opRoundHistory[uints[0]].lotteryBlockNo);
         require(uints[2] <= opRoundHistory[uints[0]].lotteryBlockNo);
-        require(_isWinningTicket(uints[1], b32s[1]));
-        require(_isWinningTicket(uints[2], b32s[2]));
+        require(_isWinningTicket(uints[0], b32s[1]));
+        require(_isWinningTicket(uints[0], b32s[2]));
         require(opRound >= uints[0] && opRound < uints[0] + 16);  // can withdraw at this and some opRounds later
 
         // verify signature, generate txHash and proof the existence of all txHashes
@@ -403,7 +403,7 @@ contract BlockRegistry{
         require(txExistUintSide(proof1, uintIsLeft[1], b32s[1], uints[1]));
         require(txExistUintSide(proof2, uintIsLeft[2], b32s[2], uints[2]));
 
-        require(opRoundClaimed[uints[0]][msg.sender] == false, "An account can only withdraw once per opRound if qualified");
+        require(opRoundClaimed[uints[0]][msg.sender] == false); //, "An account can only withdraw once per opRound if qualified");
         opRoundClaimed[uints[0]][msg.sender] = true;
 
         QOTInterface(QOTAddr).mint(msg.sender, reward);

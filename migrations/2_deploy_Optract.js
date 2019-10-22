@@ -13,6 +13,7 @@ module.exports = function(deployer) {
         return deployer.deploy(MemberShip, QOT.address).then ( (iMemberShip) => {
             return deployer.deploy(BlockRegistry, MemberShip.address, QOT.address).then( ()=>{
                 return deployer.deploy(Flag, MemberShip.address, BlockRegistry.address, QOT.address).then(()=>{
+                    // TODO: promise all all 3 setmining
                     iQOT.setMining(BlockRegistry.address, 0);
                     iQOT.setMining(MemberShip.address, 1);  // mainly for giveMembership
                     iQOT.setMining(Flag.address, 2);  // mainly for giveMembership
