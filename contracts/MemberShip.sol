@@ -8,7 +8,7 @@ contract MemberShip {
     address public owner;
     address[4] public coreManagers;
     address[8] public managers;
-    address public accManager;  // can only giveMembership() and buyMembership()
+    address public accManager = 0x84D4786Cd9Bdc25d7bc96f08beE6C0E66266eADD;  // can giveMembership(), buyMembership(), ...
     address public QOTAddr;
     address public flagContractAddr;
     uint public totalId;  // id 0 is not used and will start from 1

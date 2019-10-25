@@ -13855,12 +13855,12 @@
         }
       },
       "links": {},
-      "address": "0x3D4D92e3af732b91d72c3e51f421Db19a1bEdF49",
-      "transactionHash": "0x4d8dc203d20c547e55f82887da930ed409b59cbd9ad5b1b5c5f4d329b6ff8fbc"
+      "address": "0x5Fced13Ac9a8A54f4C4Da1D0fF9527C4c5713b01",
+      "transactionHash": "0x4fa18e9d61da287a3e9b61d3aeb18c01f944a02626a3e3d6134ec90712d226ac"
     }
   },
   "schemaVersion": "3.0.16",
-  "updatedAt": "2019-10-25T01:39:57.717Z",
+  "updatedAt": "2019-10-25T14:18:37.903Z",
   "devdoc": {
     "methods": {
       "allowance(address,address)": {
