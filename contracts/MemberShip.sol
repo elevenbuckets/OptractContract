@@ -6,8 +6,9 @@ import "./Interfaces/QOTInterface.sol";
 
 contract MemberShip {
     address public owner;
-    address[3] public coreManagers;
+    address[4] public coreManagers;
     address[8] public managers;
+    address public accManager;  // can only giveMembership() and buyMembership()
     address public QOTAddr;
     address public flagContractAddr;
     uint public totalId;  // id 0 is not used and will start from 1
@@ -17,8 +18,8 @@ contract MemberShip {
     uint public lastMemberCountUpdateTime;  // use this to prevent too frequent update; see updateActiveMemberCount()
     bool public paused;
     uint public activeMemberCount;  // need to call function to update this value
-    uint public curationMinQOTholding = 50000000000000;
-    bool public neverExpire = true;
+    uint public curationMinQOTholding = 50000000000000;  // 50 QOT
+    bool public neverExpire = true;  // set it to false to charge
 
     struct MemberInfo {
         address addr;
@@ -40,7 +41,9 @@ contract MemberShip {
         owner = msg.sender;
         coreManagers = [0xB440ea2780614b3c6a00e512f432785E7dfAFA3E,
                         0x4AD56641C569C91C64C28a904cda50AE5326Da41,
-                        0xaF7400787c54422Be8B44154B1273661f1259CcD];
+                        0xaF7400787c54422Be8B44154B1273661f1259CcD,
+                        address(0)
+        ];
         managers = [address(0), address(0), address(0), address(0), address(0), address(0), address(0), address(0)];
         appWhitelist = [
             address(0), address(0), address(0), address(0), address(0), address(0), address(0), address(0),
@@ -48,7 +51,7 @@ contract MemberShip {
         ];
         QOTAddr = _QOTAddr;
 
-        for (uint8 i=0; i<3; i++){
+        for (uint8 i=0; i<3; i++){  // first 3 coreManagers have highest priviledge
             _assignMembership(coreManagers[i], 255);
             appWhitelist[i] = coreManagers[i];
         }
@@ -64,7 +67,8 @@ contract MemberShip {
 
     modifier coreManagerOnly() {
         require(msg.sender != address(0));
-        require(msg.sender == coreManagers[0] || msg.sender == coreManagers[1] || msg.sender == coreManagers[2]);
+        require(msg.sender == coreManagers[0] || msg.sender == coreManagers[1] || msg.sender == coreManagers[2]  ||
+                msg.sender == coreManagers[3]);
         _;
     }
 
@@ -125,25 +129,28 @@ contract MemberShip {
     //       semi-automatically generate a deploy file, then write to main chain. Acutually I can
     //       try it from rinkeby to rinkeby!
 
-    function airdrop(address _to, uint _amount) public coreManagerOnly returns(bool){
-        // require();
+    function airdrop(address _to, uint _amount) public returns(bool){
+        require(isCoreManager(msg.sender) || msg.sender == accManager);
+        require(_amount > 100000000000);  // 0.1 QOT; fool-proof
+        require(_amount < 500000000000000);  // 500 QOT
         QOTInterface(QOTAddr).mint(_to, _amount);
         return true;
     }
 
-    function giveMembership(address buyer, uint8 tier) public coreManagerOnly returns(bool) {
-        // no need to pay! tier should be 1
+    function giveMembership(address buyer) public returns(bool) {
+        require(isCoreManager(msg.sender) || msg.sender == accManager);
         require(addressToId[buyer] == 0);  // the user is not yet a member
-        _assignMembership(buyer, tier);
-        QOTInterface(QOTAddr).mint(msg.sender, 10000000000000);
+        _assignMembership(buyer, 1);
+        QOTInterface(QOTAddr).mint(msg.sender, 10000000000000);  // 10 QOT
         return true;
     }
 
     function buyMembership() public payable feePaid whenNotPaused returns (bool) {
+        require(isCoreManager(msg.sender) || msg.sender == accManager);
         require(addressToId[msg.sender] == 0);  // the user is not yet a member
         // TODO?: uint8 _tier = determineTier(msg.sender); _assignMembership(msg.sender, _tier);
         _assignMembership(msg.sender, 1);
-        QOTInterface(QOTAddr).mint(msg.sender, 10000000000000);
+        QOTInterface(QOTAddr).mint(msg.sender, 10000000000000);  // 10 QOT
         return true;
     }
 
@@ -156,6 +163,22 @@ contract MemberShip {
 
     function renewMembership() public payable feePaid isMember whenNotPaused returns (uint) {
         uint _id = addressToId[msg.sender];
+        uint _bonus;
+        if (isVipTier(_id)) {
+            _bonus = vipMemberBonus;
+        }
+        require(block.timestamp > idExpireTime(_id) - 7 days);
+
+        // renew membership (and remove vip tier if possible)
+        memberDB[_id].since = block.timestamp;
+        _removeVipTier(_id);
+        return (block.timestamp + memberPeriod + _bonus);  // return expire time
+    }
+
+    function helpRenewMembership(address _addr) public returns (uint) {
+        require(isCoreManager(msg.sender) || msg.sender == accManager);
+        uint _id = addressToId[_addr];
+        require(idIsMember(_id));
         uint _bonus;
         if (isVipTier(_id)) {
             _bonus = vipMemberBonus;
@@ -291,7 +314,6 @@ contract MemberShip {
         }
     }
 
-
     function idExpireTime(uint _id) public view returns (uint) {
         uint _bonus;
         if (isVipTier(_id)) {
@@ -366,6 +388,22 @@ contract MemberShip {
         return _count;
     }
 
+    function isCoreManager(address _addr) public view returns (bool) {
+        if (_addr == address(0)) {
+            return false;
+        } else {
+            return (_addr == coreManagers[0] || _addr == coreManagers[1] || _addr == coreManagers[2]  ||
+                    _addr == coreManagers[3]);
+        }
+    }
+
+    // function _isMember(address _addr) internal view returns(bool){
+    //     if (_addr == address(0)) {
+    //         return false;
+    //     } else {
+    //         return (addressToId[_addr] != 0 && memberDB[addressToId[_addr]].since > 0);
+    // }
+
     // upgradable
     function pause() external coreManagerOnly whenNotPaused {
         paused = true;
@@ -394,10 +432,18 @@ contract MemberShip {
     }
 
     function updateCoreManager(address _addr, uint _id) public ownerOnly returns(address){
-        require(_addr != address(0) && _id < 3);  // only 3 core managers
+        require(_addr != address(0) && _id < 4);  // max 4 core managers
         address prevCM = coreManagers[_id];
         coreManagers[_id] = _addr;
         return prevCM;
+    }
+
+    function updateAccManager(address _addr) public coreManagerOnly {
+        if (_addr == address(0)) {
+            accManager = owner;
+        } else {
+            accManager = _addr;
+        }
     }
 
     function getManagers() external view coreManagerOnly returns(address[8] memory) {
@@ -409,9 +455,7 @@ contract MemberShip {
     }
 
     function updateCurationMinQOTholding(uint _qotAmount) external {
-        require(msg.sender != address(0));
-        require((msg.sender == coreManagers[0] || msg.sender == coreManagers[1] || msg.sender == coreManagers[2]) ||
-                msg.sender == flagContractAddr);
+        require(isCoreManager(msg.sender) || msg.sender == flagContractAddr);
         // require(_qotAmount >= 1000000000000);  // TODO: could it be zero?
         curationMinQOTholding = _qotAmount;
     }

@@ -16,6 +16,20 @@
   {
     "constant": true,
     "inputs": [],
+    "name": "accManager",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
     "name": "QOTAddr",
     "outputs": [
       {
@@ -264,10 +278,6 @@
       {
         "name": "buyer",
         "type": "address"
-      },
-      {
-        "name": "tier",
-        "type": "uint8"
       }
     ],
     "name": "giveMembership",
@@ -307,6 +317,25 @@
     ],
     "payable": true,
     "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_addr",
+        "type": "address"
+      }
+    ],
+    "name": "helpRenewMembership",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -789,6 +818,25 @@
     "type": "function"
   },
   {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_addr",
+        "type": "address"
+      }
+    ],
+    "name": "isCoreManager",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "constant": false,
     "inputs": [],
     "name": "pause",
@@ -876,6 +924,20 @@
         "type": "address"
       }
     ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_addr",
+        "type": "address"
+      }
+    ],
+    "name": "updateAccManager",
+    "outputs": [],
     "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"

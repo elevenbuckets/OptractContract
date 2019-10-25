@@ -331,10 +331,11 @@ contract BlockRegistry{
                 return true;
             }
         }
+        return false;
     }
 
     function _isWinningTicket(uint _opRound, bytes32 _ticket) internal view returns(bool) {
-        require(_opRound >= opRound && opRoundHistory[_opRound].lotteryWinNumber != 0x0);
+        require(opRound >= _opRound && opRoundHistory[_opRound].lotteryWinNumber != 0x0);
         bytes32 winHex = opRoundHistory[_opRound].lotteryWinNumber;
         return lotteryWins(winHex, _ticket, numRange);
     }
