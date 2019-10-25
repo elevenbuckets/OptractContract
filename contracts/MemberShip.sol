@@ -146,7 +146,6 @@ contract MemberShip {
     }
 
     function buyMembership() public payable feePaid whenNotPaused returns (bool) {
-        require(isCoreManager(msg.sender) || msg.sender == accManager);
         require(addressToId[msg.sender] == 0);  // the user is not yet a member
         // TODO?: uint8 _tier = determineTier(msg.sender); _assignMembership(msg.sender, _tier);
         _assignMembership(msg.sender, 1);
