@@ -141,7 +141,7 @@ contract MemberShip {
         require(isCoreManager(msg.sender) || msg.sender == accManager);
         require(addressToId[buyer] == 0);  // the user is not yet a member
         _assignMembership(buyer, 1);
-        QOTInterface(QOTAddr).mint(msg.sender, 10000000000000);  // 10 QOT
+        QOTInterface(QOTAddr).mint(buyer, 10000000000000);  // 10 QOT
         return true;
     }
 
